@@ -1,0 +1,19 @@
+'''
+A Snakefile for Salmonella typing at MDU
+'''
+
+rule all:
+    input:
+        "SISTR_LIMS.xlsx",
+        "input.txt"
+
+rule test_controls:
+    input:
+        stm="/path/to/salmonella/stm",
+        sent="/path/to/salmonella/ent"
+    output:
+        "sistr_control.txt"
+    shell:
+        """
+        touch {output}
+        """
