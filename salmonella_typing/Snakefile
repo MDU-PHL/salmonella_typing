@@ -2,18 +2,31 @@
 A Snakefile for Salmonella typing at MDU
 '''
 
+configfile: 'config_sistr.yaml'
+input_file = config['input_file']
+
+
 rule all:
     input:
         "SISTR_LIMS.xlsx",
-        "input.txt"
+        input_file
 
 rule test_controls:
     input:
-        stm="/path/to/salmonella/stm",
-        sent="/path/to/salmonella/ent"
+        stm="data/SentericaLT2.fasta",
     output:
         "sistr_control.txt"
+    threads: 2
     shell:
         """
-        touch {output}
+        "sistr_cmd -i {input.stm} "LT2" -f csv -o {output} -T $TMPDIR/SISTR_CONTROL_LT2 --qc --threads"
         """
+
+rule run_sistr:
+    input:
+        asm="{sample}/contigs.fa"
+    output:
+        "{sample}/sistr.txt"
+    threads: 2
+    shell:
+        "sistr_cmd -i {input.asm} {wildcards.sample} -f csv -o {output} -T $TMPDIR/{sample} --qc --threads"
