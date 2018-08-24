@@ -13,6 +13,10 @@ sistr
 VERSION=1.0.2
 export VERSION
 
+%files
+mkdir -p /opt/salmonella_typing
+cp -R salmonella_typing /opt/salmonella_typing
+
 %post
  # set versions of software to install
   VERSION=1.0.2
@@ -27,6 +31,8 @@ export VERSION
   conda install sistr_cmd=$VERSION
   conda install snakemake
 
+  pip3 install cleo
+  pip3 install pandas
  
   echo "Sorting some env variables..."
   echo "All DBs updated on $(date "+%Y-%m-%d")" > /etc/dbupdate
