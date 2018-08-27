@@ -6,7 +6,7 @@ import pandas
 
 configfile: 'config_sistr.yaml'
 input_file = config['input_file']
-stm_control = f"{config['stm_control']}"
+stm_control = config['stm_control']
 
 SAMPLES = pandas.read_csv(input_file, sep=None, engine='python', encoding='utf8').set_index("SEQID", drop=False)
 
@@ -37,7 +37,9 @@ rule run_sistr:
         "{sample}/sistr.csv"
     threads: 2
     shell:
-        "sistr -i {input.asm:q} {wildcards.sample} -f csv -o {wildcards.sample}/sistr -T $TMPDIR --qc --threads {threads}"
+        """
+        sistr -i {input.asm:q} {wildcards.sample} -f csv -o {wildcards.sample}/sistr -T $TMPDIR --qc --threads {threads}
+        """
 
 rule gather_results:
     input:
