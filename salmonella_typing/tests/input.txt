@@ -1,1 +1,2 @@
-test1
+ID,ASM
+test1,test1/contigs.fa
