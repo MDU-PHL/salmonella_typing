@@ -2,9 +2,13 @@
 A Snakefile for Salmonella typing at MDU
 '''
 
+import pandas
+
 configfile: 'config_sistr.yaml'
 input_file = config['input_file']
+stm_control = f"{config['stm_control']}"
 
+SAMPLES = pandas.read_csv(input_file, sep=None, engine='python', encoding='utf8').set_index("SEQID", drop=False)
 
 rule all:
     input:
@@ -13,20 +17,35 @@ rule all:
 
 rule test_controls:
     input:
-        stm="data/SentericaLT2.fasta",
+        stm=stm_control,
     output:
-        "sistr_control.txt"
+        "sistr_control.csv"
+    params:
+        prefix="sistr_control"
     threads: 2
     shell:
         """
-        "sistr_cmd -i {input.stm} "LT2" -f csv -o {output} -T $TMPDIR/SISTR_CONTROL_LT2 --qc --threads"
+        sistr -i "{input.stm}" "LT2" -f csv -o {params.prefix} -T $TMPDIR --qc --threads {threads}
         """
 
 rule run_sistr:
     input:
+        "sistr_control.csv",
         asm="{sample}/contigs.fa"
+        
     output:
-        "{sample}/sistr.txt"
+        "{sample}/sistr.csv"
     threads: 2
     shell:
-        "sistr_cmd -i {input.asm} {wildcards.sample} -f csv -o {output} -T $TMPDIR/{sample} --qc --threads"
+        "sistr -i {input.asm:q} {wildcards.sample} -f csv -o {wildcards.sample}/sistr -T $TMPDIR --qc --threads {threads}"
+
+rule gather_results:
+    input:
+        res=expand("{sample}/sistr.csv", sample=SAMPLES.index),
+        cont="sistr_control.csv"
+    output:
+        "SISTR_LIMS.xlsx"
+    shell:
+        '''
+        cat {input.cont} {input.res} > {output}
+        '''
