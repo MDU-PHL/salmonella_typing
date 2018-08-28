@@ -1,2 +1,9 @@
 *pyc*
 .snakemake
+.pytest_cache
+sistr_control.csv
+SISTR_LIMS.xlsx
+Snakefile.sistr
+input_sistr.txt
+sistr.csv
+config_sistr.yaml
