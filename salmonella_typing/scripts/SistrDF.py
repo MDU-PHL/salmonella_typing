@@ -41,4 +41,6 @@ class SistrDF(object):
         Given a row with SEQID column, return MDUID and ITEMCODE columns
         '''
         m = MDUIDREG.match(row.SEQID)
-        return pd.Series([m.group('id'), m.group('itemcode')], index=['MDUID', 'ITEMCODE'])
+        mduid = m.group('id')
+        itemcode = m.group('itemcode') if m.group('itemcode') else ''
+        return pd.Series([mduid, itemcode], index=['MDUID', 'ITEMCODE'])
