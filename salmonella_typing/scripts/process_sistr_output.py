@@ -3,9 +3,14 @@ Process the SISTR output
 '''
 
 import sys
+import inspect
 
 import pandas as pd
-from .SistrDF import SistrDF
+from SistrDF import SistrDF
+import rules
+
+rule_list = inspect.getmembers(rules, inspect.isfunction)
+criteria = rules.criteria
 
 def concat_results(results):
     '''
@@ -43,13 +48,9 @@ def create_output(tab):
     -------
     tab: pandas.DataFrame (transformed to MMS136)
 
-    >>> data = [
-    ... {'cgmlst_ST': 1156141401, 'genome': '2999-99999', 'serotype':'Ent'},
-    ... {'cgmlst_ST': 1156141401, 'genome': '2999-00999-1', 'serotype':'Tym'}
-    ... ]
-    >>> tab = pd.DataFrame(data)
-    >>> create_output(tab)
+    >>> create_output(rules.test_tab)
     '''
     tab.mms136.gen_seqid()
     tab.mms136.gen_mduid()
+    tab.mms136.apply_rules(rule_list, criteria)
     return tab

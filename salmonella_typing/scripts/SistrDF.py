@@ -36,6 +36,26 @@ class SistrDF(object):
         self._obj.insert(0, 'ITEMCODE', new_tab.ITEMCODE)
         self._obj.insert(0, 'MDUID', new_tab.MDUID)
     
+    def apply_rules(self, rule_list, criteria):
+        '''
+        Given a list of tuples (rule_name, function), add masking columns
+        to table
+
+        rules are named with a 'rule_' prefix by default, this is removed
+        when creating the colum name by subsetting the rule name
+
+        criteria is a dictionary that specify how to generate PASS, REVIEW, FAIL, EDGE
+        masking columns by grouping results from different rules.
+
+        rules are defined in the rules.py module
+        criteria are defined in the rules.py module
+        '''
+        for r,f in rule_list:
+            self._obj[r[5:]] = f(self._obj)
+        
+        for k in criteria:
+            self._obj[k] = self._obj.eval(criteria[k])
+
     def _split_id(self, row):
         '''
         Given a row with SEQID column, return MDUID and ITEMCODE columns
