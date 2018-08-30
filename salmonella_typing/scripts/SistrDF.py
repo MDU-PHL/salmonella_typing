@@ -6,6 +6,7 @@ output according to MMS136
 import re
 
 import pandas as pd
+import numpy as np
 
 MDUIDREG = re.compile(r'(?P<id>[0-9]{4}-[0-9]{5})-?(?P<itemcode>.{1,2})?')
 
@@ -49,12 +50,59 @@ class SistrDF(object):
 
         rules are defined in the rules.py module
         criteria are defined in the rules.py module
+
+        Adds an additional column: CONSISTENT --- this column should be equal to 1
+        if the sample is True for only one criteria. If sum is different from 0, 
+        the sample needs to be reviewed
         '''
         for r,f in rule_list:
             self._obj[r[5:]] = f(self._obj)
         
         for k in criteria:
             self._obj[k] = self._obj.eval(criteria[k])
+
+        self._obj['CONSISTENT'] = self._obj[list(criteria)].sum(axis=1)
+    
+    def call_status(self):
+        '''
+        '''
+        PASS = self._obj['PASS']
+        REVIEW =  self._obj.loc[:,self._obj.columns.str.startswith('REVIEW')].any(axis = 1)
+        FAIL = self._obj['FAIL']
+        EDGE = self._obj['EDGE']
+        CONSISTENT = self._obj['CONSISTENT'] == 1
+        conditions = [
+            (PASS & CONSISTENT),
+            (REVIEW & CONSISTENT),
+            (EDGE & CONSISTENT),
+            (FAIL & CONSISTENT)
+        ]
+        choices = ['PASS', 'REVIEW', 'REVIEW, EDGE', 'FAIL']
+        self._obj['STATUS'] = np.select(conditions, choices, default='REVIEW, INCONSISTENT')
+    
+    def output_csv(self, outname="sistr_out.csv", summary=True):
+        '''
+        The off chance someone wants a CSV output. It will have the following
+        data if summary is True:
+        SEQID, Subspecies, Serovar, h1, h2, o_antigen, STATUS
+
+        STATUS: PASS, REVIEW, FAIL
+
+        Otherwise, output the complete table (minus MDUID and ITEMCODE)
+        '''
+        if summary:
+            output_cols = ['SEQID', 'cgmlst_subspecies','serovar', 'h1', 'h2', 'o_antigen', 'STATUS']
+        else:
+            output_cols = self._obj.columns
+        
+        outtab = self._obj.loc[:,output_cols]
+        outtab.rename(columns = {'cgmlst_subspecies': 'subspecies'}, inplace=True)
+        outtab.to_csv(outname, index=False)
+    
+    def output_lims(self, outname="sistr_lims.xlsx"):
+        '''
+        '''
+        pass
 
     def _split_id(self, row):
         '''

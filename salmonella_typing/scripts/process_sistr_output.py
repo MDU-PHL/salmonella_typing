@@ -53,4 +53,7 @@ def create_output(tab):
     tab.mms136.gen_seqid()
     tab.mms136.gen_mduid()
     tab.mms136.apply_rules(rule_list, criteria)
+    tab.mms136.call_status()
+    tab.mms136.output_csv()
+    tab.mms136.output_csv(outname='sistr_out_complete.csv', summary=False)
     return tab
