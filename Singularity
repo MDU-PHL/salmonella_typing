@@ -33,6 +33,7 @@ cp -R salmonella_typing /opt/salmonella_typing
 
   pip3 install cleo
   pip3 install pandas
+  pip3 install XlsxWriter
  
   echo "Sorting some env variables..."
   echo "All DBs updated on $(date "+%Y-%m-%d")" > /etc/dbupdate

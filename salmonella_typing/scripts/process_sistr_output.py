@@ -56,4 +56,5 @@ def create_output(tab):
     tab.mms136.call_status()
     tab.mms136.output_csv()
     tab.mms136.output_csv(outname='sistr_out_complete.csv', summary=False)
+    tab.mms136.output_lims()
     return tab

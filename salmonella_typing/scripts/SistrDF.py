@@ -101,8 +101,25 @@ class SistrDF(object):
     
     def output_lims(self, outname="sistr_lims.xlsx"):
         '''
+        Generate a LIMS output
+
+        The LIMS Excel sheet has an:
+        - MMS136 sheet recording data that has passed
+        - REVIEW sheet recording data that needs review or has failed
+        - ALL sheet with the full output analysis
         '''
-        pass
+        summary_header = ['MDUID', 'ITEMCODE', 'SEQID',
+            'cgmlst_subspecies', 'cgmlst_matching_alleles', 'serovar_cgmlst',
+            'h1', 'h2', 'o_antigen', 'serogroup', 'serovar_antigen',
+            'serovar', 'STATUS'
+        ]
+        writer = pd.ExcelWriter(outname, engine='xlsxwriter')
+        pass_df = self._obj.query("STATUS == 'PASS'").loc[:,summary_header]
+        pass_df.to_excel(writer, sheet_name='MMS136', index=False)
+        review_df = self._obj.query("STATUS != 'PASS'").loc[:,summary_header].sort_values(by="STATUS", ascending=False)
+        review_df.to_excel(writer, sheet_name='REVIEW', index=False)
+        self._obj.to_excel(writer, sheet_name="ALL", index=False)
+        writer.save()
 
     def _split_id(self, row):
         '''
