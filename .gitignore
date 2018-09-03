@@ -8,3 +8,4 @@ input_sistr.txt
 sistr.csv
 config_sistr.yaml
 sistr_out*
+.DS_Store
