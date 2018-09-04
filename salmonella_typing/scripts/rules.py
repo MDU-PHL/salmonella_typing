@@ -72,21 +72,38 @@ fail_rules = [
 # Edge cases were identified during the course of 
 # validation and/or use that should be immediately 
 # triggered for review.
-# Three edge cases are currently being used, and 
+# Two edge cases are currently being used, and 
 # review should be triggered on any of the three
 
-edge_case_rules = [
+edge_case_review_rules = [
     'edge_case_dublin',
-    'edge_case_enteritidis',
     'edge_case_monophasic_typhimurium'
 ]
 
+# TRIGGER AN AUTOMATIC PASS OF EDGE CASE
+# Edge cases were identified during the course of 
+# validation and/or use that can be PASSED immediately 
+# Currently, one edge case meets that criteria: Enteritidis
+edge_case_pass_rules = [
+    'edge_case_enteritidis'
+]
+
+def build_rules(*args, is_or=False):
+    rule_sets = [*args]
+    if len(rule_sets) > 1:
+        rules = ['(' + ' and '.join(rule_set) + ')' for rule_set in rule_sets]
+        rules = ' or '.join(rules)
+    else:
+        bool_operator = ' and ' if not is_or else ' or '
+        rules = '(' + bool_operator.join(rule_sets[0]) + ')'
+    return rules
+
 criteria = {
-    'PASS' : ' and '.join(pass_rules),
-    'REVIEW_1': ' and '.join(review_rules_1),
-    'REVIEW_2': ' and '.join(review_rules_2),
-    'FAIL':  ' or '.join(fail_rules),
-    'EDGE': ' or '.join(edge_case_rules)
+    'PASS' : build_rules(pass_rules, edge_case_pass_rules),
+    'REVIEW_1': build_rules(review_rules_1),
+    'REVIEW_2': build_rules(review_rules_2),
+    'FAIL':  build_rules(fail_rules, is_or=True),
+    'EDGE': build_rules(edge_case_review_rules, is_or=True)
 }
 
 ### RULES ###
