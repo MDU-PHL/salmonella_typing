@@ -89,6 +89,20 @@ edge_case_pass_rules = [
 ]
 
 def build_rules(*args, is_or=False):
+    '''
+    A function to build criteria based on sets of rules. This function is 
+    used to build the criteria dictionary below, using the sets of rules
+    defined above.
+
+    Input:
+    ------
+    rules: one or more lists
+    is_or: Bool (a boolean to indicate if the elements should be grouped by or --- only useful for single list of rules)
+
+    Output:
+    -------
+    criteria: str (a string indicating how different groups of rules should be applied)
+    '''
     rule_sets = [*args]
     if len(rule_sets) > 1:
         rules = ['(' + ' and '.join(rule_set) + ')' for rule_set in rule_sets]
