@@ -11,7 +11,7 @@ from cleo import Command, argument, option
 from scripts.SistrDF import SistrDF
 import scripts.rules
 
-rule_list = inspect.getmembers(scripts.rules, inspect.isfunction)
+rule_list = [(name, function) for name,function in inspect.getmembers(scripts.rules, inspect.isfunction) if name.startswith("rule_")]
 criteria = scripts.rules.criteria
 
 class ParseSistrOuput(Command):
