@@ -10,14 +10,17 @@ Series with Boolean values depending on whether the row is Pass or
 Fail
 '''
 
+import sys
+
 import pandas as pd
 
-### SOME TEST DATA FOR DOCSTRING TESTS ###
-### To test run:
-###     PYTHONPATH=. pytest --doctest-modules rules.py
+if 'pytest' in sys.modules:
+    ### SOME TEST DATA FOR DOCSTRING TESTS ###
+    ### To test run:
+    ###     PYTHONPATH=. pytest --doctest-modules rules.py
 
-test_data = "rule_test/sistr_test_rules.csv"
-test_tab = pd.read_csv(test_data)
+    test_data = "rule_test/sistr_test_rules.csv"
+    test_tab = pd.read_csv(test_data)
 
 ### CRITERIA ###
 
