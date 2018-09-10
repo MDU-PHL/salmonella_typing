@@ -1,13 +1,14 @@
-cgmlst_matching_alleles,cgmlst_subspecies,genome,h1,h2,o_antigen,serogroup,serovar,serovar_antigen,serovar_cgmlst,Result_interpretation
-329,enterica,1888-90180,d,-,"9,12[Vi]",D1,Typhi,Typhi,Typhi,Pass
-330,enterica,1888-90181,a,"1,5","1,2,12",A,Paratyphi A,Miami|Paratyphi A|Sendai,Paratyphi A,"Review, Pass"
-326,enterica,1888-90182-A,i,"1,2","1,4,[5],12",B,Typhimurium,Typhimurium,Typhimurium,Pass
-328,enterica,1888-90183,"g,[s],t",-,"1,3,19",E1,Senftenberg,Senftenberg,Senftenberg,Pass
-326,enterica,1888-90184,i,-,"1,4,[5],12",B,Typhimurium,"I 4,[5],12:i:-",Typhimurium,"Review, Change"
-114,salamae,1888-90185-1,-,-,-,-,-:-:-,-:-:-,"II 1,4,[5],12,[27]:b:[e,n,x]",Fail
-14,-,1888-90195,-,-,-,-,-:-:-,-:-:-,"II 1,4,[5],12,[27]:b:[e,n,x]",Fail
-325,enterica,1888-90186,"e,h","1,6","3,{10}{15}{15,34}",E1,Anatum,Anatum|Hayindogo,Anatum,"Review, Pass"
-328,enterica,1888-90187-C1,"f,g",-,"1,13,23",G,Havana,Havana,Havana,Pass
-326,diarizonae,1888-90188,"l,v",z35,61,O61,"IIIb 61:l,v:z35","IIIb 61:l,v:z35","IIIb 61:l,v:z35","Review, Pass"
-325,enterica,1888-90189-12,"g,m",-,"1,9,12",D1,Enteritidis,Blegdam|Dublin|Enteritidis|Gueuletapee|Hillingdon|Kiel|Moscow|Naestved|Nitra|Rostock,Enteritidis,"Review, Pass"
-306,enterica,1888-90190,"g,p",-,"1,9,12",D1,Enteritidis,Blegdam|Dublin|Enteritidis|Gueuletapee|Hillingdon|Kiel|Moscow|Naestved|Nitra|Rostock,Enteritidis,"Review, Follow-up"
+cgmlst_matching_alleles,cgmlst_subspecies,genome,h1,h2,o_antigen,serogroup,serovar,serovar_antigen,serovar_cgmlst,Result_interpretation,rule_must_be_subsp_enterica,rule_must_have_at_least_300_matching_alleles,rule_must_have_fewer_100_matching_alleles,rule_inferences_for_all_antigens_present,rule_all_serovar_calls_must_match,rule_serogroup_inference_must_be_present,rule_no_antigens_or_serogroup_found,rule_edge_case_dublin,rule_edge_case_enteritidis,rule_edge_case_monophasic_typhimurium,rule_edge_case_sophia,filter_edge_case_sophia
+329,enterica,1888-90180,d,-,"9,12[Vi]",D1,Typhi,Typhi,Typhi,Pass,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
+330,enterica,1888-90181,a,"1,5","1,2,12",A,Paratyphi A,Miami|Paratyphi A|Sendai,Paratyphi A,"Review, Pass",TRUE,TRUE,FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
+326,enterica,1888-90182-A,i,"1,2","1,4,[5],12",B,Typhimurium,Typhimurium,Typhimurium,Pass,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
+328,enterica,1888-90183,"g,[s],t",-,"1,3,19",E1,Senftenberg,Senftenberg,Senftenberg,Pass,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
+326,enterica,1888-90184,i,-,"1,4,[5],12",B,Typhimurium,"I 4,[5],12:i:-",Typhimurium,"Review, Change",TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,FALSE,
+114,salamae,1888-90185-1,-,-,-,-,-:-:-,-:-:-,"II 1,4,[5],12,[27]:b:[e,n,x]",Fail,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,
+14,-,1888-90195,-,-,-,-,-:-:-,-:-:-,"II 1,4,[5],12,[27]:b:[e,n,x]",Fail,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,
+325,enterica,1888-90186,"e,h","1,6","3,{10}{15}{15,34}",E1,Anatum,Anatum|Hayindogo,Anatum,"Review, Pass",TRUE,TRUE,FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
+328,enterica,1888-90187-C1,"f,g",-,"1,13,23",G,Havana,Havana,Havana,Pass,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
+326,diarizonae,1888-90188,"l,v",z35,61,O61,"IIIb 61:l,v:z35","IIIb 61:l,v:z35","IIIb 61:l,v:z35","Review, Pass",FALSE,TRUE,FALSE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,
+325,enterica,1888-90189-12,"g,m",-,"1,9,12",D1,Enteritidis,Blegdam|Dublin|Enteritidis|Gueuletapee|Hillingdon|Kiel|Moscow|Naestved|Nitra|Rostock,Enteritidis,"Review, Pass",TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,TRUE,FALSE,FALSE,
+306,enterica,1888-90190,"g,p",-,"1,9,12",D1,Enteritidis,Blegdam|Dublin|Enteritidis|Gueuletapee|Hillingdon|Kiel|Moscow|Naestved|Nitra|Rostock,Enteritidis,"Review, Follow-up",TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,
+310,salamae,1888-99678,b,-,"1,4,12,27",B,Paratyphi B var. Java monophasic,"II 1,4,[5],12,[27]:b:[e,n,x]",Paratyphi B var. Java monophasic,Pass,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,TRUE,Sophia
