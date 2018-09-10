@@ -35,7 +35,7 @@ class SistrDF(object):
         '''
         new_tab = self._obj.apply(self._split_id, axis=1, result_type='expand')
         self._obj.insert(0, 'ITEMCODE', new_tab.ITEMCODE)
-        self._obj.insert(0, 'MDUID', new_tab.MDUID)
+        self._obj.insert(0, 'ID', new_tab.MDUID)
     
     def apply_rules(self, rule_list, criteria):
         '''
