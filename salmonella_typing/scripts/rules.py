@@ -30,9 +30,9 @@ if 'pytest' in sys.modules:
 # 2. That there be at least 300 matching cgMLST alleles
 # 3. All serovar calls must match exactly (serovar, serovar_antigen, serovar_cgmlst)
 pass_rules = [
-    'must_be_subsp_enterica',
-    'must_have_at_least_300_matching_alleles',
-    'all_serovar_calls_must_match'
+    'rule_must_be_subsp_enterica',
+    'rule_must_have_at_least_300_matching_alleles',
+    'rule_all_serovar_calls_must_match'
 ]
 
 # TRIGGER A REVIEW IF
@@ -42,9 +42,9 @@ pass_rules = [
 # 3. All antigens have inferences (h1, h2, and o-antigen)
 
 review_rules_1 = [
-    '~all_serovar_calls_must_match',
-    'serogroup_inference_must_be_present',
-    'inferences_for_all_antigens_present'
+    '~rule_all_serovar_calls_must_match',
+    'rule_serogroup_inference_must_be_present',
+    'rule_inferences_for_all_antigens_present'
 ]
 
 # TRIGGER A REVIEW IF
@@ -54,9 +54,9 @@ review_rules_1 = [
 # 3. All serovar calls must match exactly (serovar, serovar_antigen, serovar_cgmlst)
 
 review_rules_2 = [
-    '~must_be_subsp_enterica',
-    'must_have_at_least_300_matching_alleles',
-    'all_serovar_calls_must_match'
+    '~rule_must_be_subsp_enterica',
+    'rule_must_have_at_least_300_matching_alleles',
+    'rule_all_serovar_calls_must_match'
 ]
 
 # IMMEDIATE FAIL
@@ -64,8 +64,8 @@ review_rules_2 = [
 # 1. Fewer than 100 cgMLST loci were matched
 
 fail_rules = [
-    'must_have_fewer_100_matching_alleles',
-    'no_antigens_or_serogroup_found'
+    'rule_must_have_fewer_100_matching_alleles',
+    'rule_no_antigens_or_serogroup_found'
 ]
 
 # TRIGGER REVIEW BECAUSE OF EDGE CASE
@@ -76,8 +76,8 @@ fail_rules = [
 # review should be triggered on any of the three
 
 edge_case_review_rules = [
-    'edge_case_dublin',
-    'edge_case_monophasic_typhimurium'
+    'rule_edge_case_dublin',
+    'rule_edge_case_monophasic_typhimurium'
 ]
 
 # TRIGGER AN AUTOMATIC PASS OF EDGE CASE
@@ -85,7 +85,7 @@ edge_case_review_rules = [
 # validation and/or use that can be PASSED immediately 
 # Currently, one edge case meets that criteria: Enteritidis
 edge_case_pass_rules = [
-    'edge_case_enteritidis'
+    'rule_edge_case_enteritidis'
 ]
 
 def build_rules(*args, is_or=False):
@@ -127,23 +127,11 @@ def rule_must_be_subsp_enterica(tab):
     To pass this rule SISTR must have identified the sample as 
     subspecies entrica.
 
-    >>> rule_must_be_subsp_enterica(test_tab)
-    0      True
-    1      True
-    2      True
-    3      True
-    4      True
-    5     False
-    6     False
-    7      True
-    8      True
-    9     False
-    10     True
-    11     True
-    Name: must_be_subsp_enterica, dtype: bool
+    >>> res = rule_must_be_subsp_enterica(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_must_be_subsp_enterica)
     '''
     mask = tab.cgmlst_subspecies == 'enterica'
-    mask.name = "must_be_subsp_enterica"
+    mask.name = "rule_must_be_subsp_enterica"
     return mask
 
 def rule_must_have_at_least_300_matching_alleles(tab):
@@ -151,23 +139,11 @@ def rule_must_have_at_least_300_matching_alleles(tab):
     To pass this rule SISTR must have identified at least 300 
     matching alleles to its cgMLST scheme
 
-    >>> rule_must_have_at_least_300_matching_alleles(test_tab)
-    0      True
-    1      True
-    2      True
-    3      True
-    4      True
-    5     False
-    6     False
-    7      True
-    8      True
-    9      True
-    10     True
-    11     True
-    Name: must_have_at_least_300_matching_alleles, dtype: bool
+    >>> res = rule_must_have_at_least_300_matching_alleles(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_must_have_at_least_300_matching_alleles)
     '''
     mask = tab.cgmlst_matching_alleles >= 300
-    mask.name = "must_have_at_least_300_matching_alleles"
+    mask.name = "rule_must_have_at_least_300_matching_alleles"
     return mask
 
 def rule_must_have_fewer_100_matching_alleles(tab):
@@ -177,23 +153,11 @@ def rule_must_have_fewer_100_matching_alleles(tab):
 
     This rule should lead to an automatic FAIL.
 
-    >>> rule_must_have_fewer_100_matching_alleles(test_tab)
-    0     False
-    1     False
-    2     False
-    3     False
-    4     False
-    5     False
-    6      True
-    7     False
-    8     False
-    9     False
-    10    False
-    11    False
-    Name: must_have_fewer_100_matching_alleles, dtype: bool
+    >>> res = rule_must_have_fewer_100_matching_alleles(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_must_have_fewer_100_matching_alleles)
     '''
     mask = tab.cgmlst_matching_alleles < 100
-    mask.name = "must_have_fewer_100_matching_alleles"
+    mask.name = "rule_must_have_fewer_100_matching_alleles"
     return mask
 
 def rule_inferences_for_all_antigens_present(tab):
@@ -203,73 +167,37 @@ def rule_inferences_for_all_antigens_present(tab):
 
     At the moment, a missing prediction is identified with a "-"
 
-    >>> rule_inferences_for_all_antigens_present(test_tab)
-    0     False
-    1      True
-    2      True
-    3     False
-    4     False
-    5     False
-    6     False
-    7      True
-    8     False
-    9      True
-    10    False
-    11    False
-    Name: inferences_for_all_antigens_present, dtype: bool
+    >>> res = rule_inferences_for_all_antigens_present(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_inferences_for_all_antigens_present)
     '''
     missing_marker = "-"
     query = f"h1 != '{missing_marker}' and h2 != '{missing_marker}' and o_antigen != '{missing_marker}'"
     mask = tab.eval(query)
-    mask.name = "inferences_for_all_antigens_present"
+    mask.name = "rule_inferences_for_all_antigens_present"
     return mask
 
 def rule_all_serovar_calls_must_match(tab):
     '''
     The three columns: serovar,serovar_antigen,serovar_cgmlst must match exactly.
 
-    >>> rule_all_serovar_calls_must_match(test_tab)
-    0      True
-    1     False
-    2      True
-    3      True
-    4     False
-    5     False
-    6     False
-    7     False
-    8      True
-    9      True
-    10    False
-    11    False
-    Name: all_serovar_calls_must_match, dtype: bool
+    >>> res = rule_all_serovar_calls_must_match(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_all_serovar_calls_must_match)
     '''
     query = 'serovar == serovar_antigen == serovar_cgmlst'
     mask = tab.eval(query)
-    mask.name = "all_serovar_calls_must_match"
+    mask.name = "rule_all_serovar_calls_must_match"
     return mask
 
 def rule_serogroup_inference_must_be_present(tab):
     '''
     The serogroup column must have a call. In other words, it cannot be "-"
 
-    >>> rule_serogroup_inference_must_be_present(test_tab)
-    0      True
-    1      True
-    2      True
-    3      True
-    4      True
-    5     False
-    6     False
-    7      True
-    8      True
-    9      True
-    10     True
-    11     True
-    Name: serogroup_inference_must_be_present, dtype: bool
+    >>> res =  rule_serogroup_inference_must_be_present(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_serogroup_inference_must_be_present)
     '''
     query = "serogroup != '-'"
     mask = tab.eval(query)
-    mask.name = "serogroup_inference_must_be_present"
+    mask.name = "rule_serogroup_inference_must_be_present"
     return mask
 
 
@@ -283,20 +211,8 @@ def rule_no_antigens_or_serogroup_found(tab):
     o_antigen="-",
     serogroup="-"
 
-    >>> rule_no_antigens_or_serogroup_found(test_tab)
-    0     False
-    1     False
-    2     False
-    3     False
-    4     False
-    5      True
-    6      True
-    7     False
-    8     False
-    9     False
-    10    False
-    11    False
-    Name: no_antigens_or_serogroup_found, dtype: bool
+    >>> res = rule_no_antigens_or_serogroup_found(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_no_antigens_or_serogroup_found)
     '''
     query = ' == '.join([
         'h1',
@@ -306,7 +222,7 @@ def rule_no_antigens_or_serogroup_found(tab):
         '"-"'
     ])
     mask = tab.eval(query)
-    mask.name = 'no_antigens_or_serogroup_found'
+    mask.name = 'rule_no_antigens_or_serogroup_found'
     return mask
 
 ### EDGE CASES ###
@@ -322,20 +238,8 @@ def rule_edge_case_dublin(tab):
     serovar=serovar_cgmlst="Enteritidis"
     serovar_antigen="Blegdam|Dublin|Enteritidis|Gueuletapee|Hillingdon|Kiel|Moscow|Naestved|Nitra|Rostock"
 
-    >>> rule_edge_case_dublin(test_tab)
-    0     False
-    1     False
-    2     False
-    3     False
-    4     False
-    5     False
-    6     False
-    7     False
-    8     False
-    9     False
-    10    False
-    11     True
-    Name: edge_case_dublin, dtype: bool
+    >>> res = rule_edge_case_dublin(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_edge_case_dublin)
     '''
     query = ' and '.join([
         'h1=="g,p"',
@@ -346,7 +250,7 @@ def rule_edge_case_dublin(tab):
         'serovar_antigen=="Blegdam|Dublin|Enteritidis|Gueuletapee|Hillingdon|Kiel|Moscow|Naestved|Nitra|Rostock"'
     ])
     mask = tab.eval(query)
-    mask.name = 'edge_case_dublin'
+    mask.name = 'rule_edge_case_dublin'
     return mask
 
 def rule_edge_case_enteritidis(tab):
@@ -363,20 +267,8 @@ def rule_edge_case_enteritidis(tab):
     **NOTE** this is one element different from the Dublin edge case. Here, h1="g,m". In the
     Dublin case it is h1="g,p"
 
-    >>> rule_edge_case_enteritidis(test_tab)
-    0     False
-    1     False
-    2     False
-    3     False
-    4     False
-    5     False
-    6     False
-    7     False
-    8     False
-    9     False
-    10     True
-    11    False
-    Name: edge_case_enteritidis, dtype: bool
+    >>> res = rule_edge_case_enteritidis(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_edge_case_enteritidis)
     '''
     query = ' and '.join([
         'h1=="g,m"',
@@ -387,7 +279,7 @@ def rule_edge_case_enteritidis(tab):
         'serovar_antigen=="Blegdam|Dublin|Enteritidis|Gueuletapee|Hillingdon|Kiel|Moscow|Naestved|Nitra|Rostock"'
     ])
     mask = tab.eval(query)
-    mask.name = 'edge_case_enteritidis'
+    mask.name = 'rule_edge_case_enteritidis'
     return mask
 
 def rule_edge_case_monophasic_typhimurium(tab):
@@ -402,20 +294,8 @@ def rule_edge_case_monophasic_typhimurium(tab):
     serovar="Typhimurium"
     serovar_antigen="I 4,[5],12:i:-" 
 
-    >>> rule_edge_case_monophasic_typhimurium(test_tab)
-    0     False
-    1     False
-    2     False
-    3     False
-    4      True
-    5     False
-    6     False
-    7     False
-    8     False
-    9     False
-    10    False
-    11    False
-    Name: edge_case_monophasic_typhimurium, dtype: bool
+    >>> res = rule_edge_case_monophasic_typhimurium(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_edge_case_monophasic_typhimurium)
     '''
     query = ' and '.join([
         'h1=="i"',
@@ -426,5 +306,33 @@ def rule_edge_case_monophasic_typhimurium(tab):
         'serovar_antigen=="I 4,[5],12:i:-"'
     ])
     mask = tab.eval(query)
-    mask.name = 'edge_case_monophasic_typhimurium'
+    mask.name = 'rule_edge_case_monophasic_typhimurium'
+    return mask
+
+def rule_edge_case_sophia(tab):
+    '''
+    It has been noticed that SISTR will incorrectly classify Sophia serovars
+    as Paratyphi B, when Sophia is subspecies salamae
+    This happens when:
+    cgmlst_subspecies="salamae"
+    h1="b"
+    h2="-" # missing
+    serogroup="B"
+    serovar="Paratyphi B var. Java monophasic"
+    serovar_antigen=="II 1,4,[5],12,[27]:b:[e,n,x]"
+
+    >>> res = rule_edge_case_sophia(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_edge_case_sophia)
+    '''
+    query = ' and '.join([
+        'cgmlst_subspecies=="salamae"',
+        'h1=="b"',
+        'h2=="-"',
+        'o_antigen=="1,4,12,27"',
+        'serogroup=="B"',
+        'serovar=="Paratyphi B var. Java monophasic"',
+        'serovar_antigen=="II 1,4,[5],12,[27]:b:[e,n,x]"'
+    ])
+    mask = tab.eval(query)
+    mask.name = "rule_edge_case_sophia"
     return mask
