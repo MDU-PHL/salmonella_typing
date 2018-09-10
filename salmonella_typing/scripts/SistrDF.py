@@ -42,8 +42,7 @@ class SistrDF(object):
         Given a list of tuples (rule_name, function), add masking columns
         to table
 
-        rules are named with a 'rule_' prefix by default, this is removed
-        when creating the colum name by subsetting the rule name
+        rules are named with a 'rule_' prefix by default
 
         criteria is a dictionary that specify how to generate PASS, REVIEW, FAIL, EDGE
         masking columns by grouping results from different rules.
@@ -55,13 +54,31 @@ class SistrDF(object):
         if the sample is True for only one criteria. If sum is different from 0, 
         the sample needs to be reviewed
         '''
-        for r,f in rule_list:
-            self._obj[r[5:]] = f(self._obj)
+        for rule,func in rule_list:
+            self._obj[rule] = func(self._obj)
         
         for k in criteria:
             self._obj[k] = self._obj.eval(criteria[k])
 
         self._obj['CONSISTENT'] = self._obj[list(criteria)].sum(axis=1)
+    
+    def apply_filters(self, filter_list):
+        '''
+        Similar to rules above, given a list of tuples (filter_name, function), add 
+        columns to the table with correct serovar call based on the verification work
+        that has been done.
+
+        Filters are named after the rules that define where which rows need a corrected
+        serovar call.
+        '''
+        self._obj['serovar-original'] = self._obj.serovar
+        filt_list = []
+        for filt,func in filter_list:
+            self._obj[filt] = func(self._obj)
+            filt_list.append(filt)
+        self._obj['FILTERS'] = self._obj[filt_list].apply(lambda x: sum(~x.isnull()), axis=1)
+        self._obj['serovar'] = self._obj.apply(lambda x: x.serovar if x[filt_list].isnull().all() else x[filt_list].dropna()[0], axis = 1)
+        
     
     def call_status(self):
         '''
@@ -71,11 +88,12 @@ class SistrDF(object):
         FAIL = self._obj['FAIL']
         EDGE = self._obj['EDGE']
         CONSISTENT = self._obj['CONSISTENT'] == 1
+        FILTERS_OK = self._obj['FILTERS'] <= 1
         conditions = [
-            (PASS & CONSISTENT),
-            (REVIEW & CONSISTENT),
-            (EDGE & CONSISTENT),
-            (FAIL & CONSISTENT)
+            (PASS & CONSISTENT & FILTERS_OK),
+            (REVIEW & CONSISTENT & FILTERS_OK),
+            (EDGE & CONSISTENT & FILTERS_OK),
+            (FAIL & CONSISTENT & FILTERS_OK)
         ]
         choices = ['PASS', 'REVIEW', 'REVIEW, EDGE', 'FAIL']
         self._obj['STATUS'] = np.select(conditions, choices, default='REVIEW, INCONSISTENT')
@@ -110,7 +128,7 @@ class SistrDF(object):
         '''
         summary_header = ['MDUID', 'ITEMCODE', 'SEQID',
             'cgmlst_subspecies', 'cgmlst_matching_alleles', 'serovar_cgmlst',
-            'h1', 'h2', 'o_antigen', 'serogroup', 'serovar_antigen',
+            'h1', 'h2', 'o_antigen', 'serogroup', 'serovar_antigen', 'serovar-original',
             'serovar', 'STATUS'
         ]
         writer = pd.ExcelWriter(outname, engine='xlsxwriter')

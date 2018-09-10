@@ -10,9 +10,11 @@ from cleo import Command, argument, option
 
 from scripts.SistrDF import SistrDF
 import scripts.rules
+import scripts.filters
 
 rule_list = [(name, function) for name,function in inspect.getmembers(scripts.rules, inspect.isfunction) if name.startswith("rule_")]
 criteria = scripts.rules.criteria
+filter_list = [(name, function) for name,function in inspect.getmembers(scripts.filters, inspect.isfunction) if name.startswith("filter_")]
 
 class ParseSistrOuput(Command):
     '''
@@ -82,6 +84,7 @@ class ParseSistrOuput(Command):
         self.tab.mms136.gen_seqid()
         self.tab.mms136.gen_mduid()
         self.tab.mms136.apply_rules(rule_list, criteria)
+        self.tab.mms136.apply_filters(filter_list)
         self.tab.mms136.call_status()
         if self.option("lims"):
             outfile = pathlib.Path(pathlib.Path.cwd(), self.option("prefix") + '.xlsx')
