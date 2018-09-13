@@ -35,7 +35,7 @@ class SistrDF(object):
         '''
         new_tab = self._obj.apply(self._split_id, axis=1, result_type='expand')
         self._obj.insert(0, 'ITEMCODE', new_tab.ITEMCODE)
-        self._obj.insert(0, 'ID', new_tab.MDUID)
+        self._obj.insert(0, 'ID', new_tab.ID)
     
     def apply_rules(self, rule_list, criteria):
         '''
@@ -106,7 +106,7 @@ class SistrDF(object):
 
         STATUS: PASS, REVIEW, FAIL
 
-        Otherwise, output the complete table (minus MDUID and ITEMCODE)
+        Otherwise, output the complete table (minus ID and ITEMCODE)
         '''
         if summary:
             output_cols = ['SEQID', 'cgmlst_subspecies','serovar', 'h1', 'h2', 'o_antigen', 'STATUS']
@@ -126,7 +126,7 @@ class SistrDF(object):
         - REVIEW sheet recording data that needs review or has failed
         - ALL sheet with the full output analysis
         '''
-        summary_header = ['MDUID', 'ITEMCODE', 'SEQID',
+        summary_header = ['ID', 'ITEMCODE', 'SEQID',
             'cgmlst_subspecies', 'cgmlst_matching_alleles', 'serovar_cgmlst',
             'h1', 'h2', 'o_antigen', 'serogroup', 'serovar_antigen', 'serovar-original',
             'serovar', 'STATUS'
@@ -141,9 +141,9 @@ class SistrDF(object):
 
     def _split_id(self, row):
         '''
-        Given a row with SEQID column, return MDUID and ITEMCODE columns
+        Given a row with SEQID column, return ID and ITEMCODE columns
         '''
         m = MDUIDREG.match(row.SEQID)
         mduid = m.group('id')
         itemcode = m.group('itemcode') if m.group('itemcode') else ''
-        return pd.Series([mduid, itemcode], index=['MDUID', 'ITEMCODE'])
+        return pd.Series([mduid, itemcode], index=['ID', 'ITEMCODE'])
