@@ -50,6 +50,7 @@ rule subsample_reads:
     input:
         r1="sub/{sample}/{depth}/{rep}/R1.fastq.gz",
         r2="sub/{sample}/{depth}/{rep}/R2.fastq.gz",
+        seed="sub/{sample}/{depth}/{rep}/seed.txt",
         depth="data/{sample}/depth.txt"
     output:
         r1="sub/{sample}/{depth}/{rep}/S1.fastq.gz",
