@@ -3,6 +3,8 @@ Testing LOD
 '''
 
 import pathlib
+import tempfile
+import itertools
 import pytest
 import tabulate
 import pandas as pd
@@ -12,19 +14,28 @@ from salmonella_typing.validation.limitOfDetection.gen_lod_experiment import LOD
 
 @pytest.fixture(scope="class")
 def input_test_file(tmpdir_factory, request):
-    workdir = tmpdir_factory.mktemp("salmoLOD")
-    testfile = workdir.join('test_input_lod.csv')
-    tab = pd.DataFrame({
-        'ID': ['id1', 'id2'],
-        'R1': [workdir.join('id1').join('R1.fastq.gz'),
-               workdir.join('id2').join('R1.fastq.gz')],
-        'R2': [workdir.join('id1').join('R2.fastq.gz'),
-               workdir.join('id2').join('R2.fastq.gz')]
-    })
-    print(tab)
-    assert 0
-    request.cls.wd = str(workdir)
-    yield 
+    workdir = tempfile.TemporaryDirectory()
+    workpath = pathlib.Path(workdir.name)
+    testfile = workpath.joinpath('test_input_lod.csv')
+    datadir = workpath.joinpath("data")
+    ids = ['id1', 'id2']
+    reads = ['R1', 'R2']
+    df = {'ID': ids,
+         'R1': [],
+         'R2': []}
+    for i,r in itertools.product(ids, reads):
+        tmp = datadir.joinpath(i, f"{r}.fastq.gz")
+        tmp.parent.mkdir(exist_ok=True, parents=True)
+        tmp.touch()
+        df[r].append(tmp)
+    tab = pd.DataFrame(df)
+    tab.to_csv(testfile, index=False)
+    assert testfile.exists()
+    request.cls.infile = str(testfile)
+    request.cls.wd = str(workpath)
+    yield
+    print("Cleaning up...")
+    workdir.cleanup()
 
 def pytest_generate_tests(metafunc):
     # called once per each test function
@@ -58,9 +69,10 @@ class TestLODCommand(object):
         '''
         Basic test of functionality
         '''
-        params.append(('input_file', self.wd))
-        print(params)
+        params.append(('input_file', self.infile))
+        params.append(('--workdir', self.wd))
         lod_command = self._gen_cmd(params)
+        wd = pathlib.Path(self.wd)
         assert lod_command.infile.name == 'test_input_lod.csv'
         assert lod_command.reps == [1,2]
         assert lod_command.depth == ['10','20']
@@ -69,14 +81,14 @@ class TestLODCommand(object):
         assert lod_command.min_seed == 10
         assert lod_command.max_seed == 10**8
         assert lod_command.tab.ID.tolist() == ['id1', 'id2']
-        assert lod_command.tab.R1.tolist() == ['/path/id1/read1_R1.fastq.gz', '/path/id2/read1_R1.fastq.gz']
-        assert lod_command.tab.R2.tolist() == ['/path/id1/read2_R2.fastq.gz', '/path/id2/read2_R2.fastq.gz']
         print(tabulate.tabulate(lod_command.tab_lod, headers='keys', tablefmt='md'))
-        assert 0
+        assert wd.joinpath("lod_experiment_input.csv").exists()
+        assert wd.joinpath("Snakefile").exists()
+        assert wd.joinpath('config.yaml').exists()
 
     
     def test_depth_none(self, params):
-        params.append(('input_file', self.wd))
+        params.append(('input_file', self.infile))
         with pytest.raises(UsageException, message="Expecting UsageException"):
             self._gen_cmd(params)
 
