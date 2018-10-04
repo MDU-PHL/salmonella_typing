@@ -1,0 +1,127 @@
+'''
+A Snakefile to perform limit of detection experiment
+'''
+import pathlib
+import pandas as pd
+
+configfile: "config.yaml"
+
+def stage_run(inputfile):
+    '''
+    Read the input file, create the necessary subdirectories and 
+    symlink the reads, then return a table that will be 
+    '''
+    tab = pd.read_csv(inputfile, engine='python', sep=None)
+    tab = tab.set_index('ix', drop=False)
+    subdir = pathlib.Path.cwd().joinpath("sub")
+    subdir.mkdir(exist_ok=True)
+    for row in tab.itertuples():
+        r1 = pathlib.Path(row.R1)
+        r2 = pathlib.Path(row.R2)
+        wd = subdir / row.ID / str(row.depth) / str(row.rep)
+        wd.mkdir(exist_ok=True, parents=True)
+        seed = wd / 'seed.txt'
+        seed.write_text(str(row.seed))
+        sr1 = wd / "R1.fastq.gz"
+        sr2 = wd / "R2.fastq.gz"
+        sr1.symlink_to(r1)
+        sr2.symlink_to(r2)
+    return tab
+
+dat = stage_run(config['inputfile'])
+
+rule all:
+    input:
+        config['inputfile'],
+        "lod_experiment_results.pdf"
+
+rule calculate_total_coverage:
+    input:
+        r1="data/{sample}/R1.fastq.gz",
+        r2="data/{sample}/R2.fastq.gz"
+    output:
+        "data/{sample}/depth.txt"
+    run:
+        '''
+        echo "mash"
+        '''
+
+rule subsample_reads:
+    input:
+        r1="sub/{sample}/{depth}/{rep}/R1.fastq.gz",
+        r2="sub/{sample}/{depth}/{rep}/R2.fastq.gz",
+        depth="data/{sample}/depth.txt"
+    output:
+        r1="sub/{sample}/{depth}/{rep}/S1.fastq.gz",
+        r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
+    run:
+        '''
+        echo "seqkit..."
+        '''
+
+rule skesa_assembly:
+    input:
+        r1="sub/{sample}/{depth}/{rep}/S1.fastq.gz",
+        r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
+    output:
+        "sub/{sample}/{depth}/{rep}/skesa.fasta"
+    run:
+        '''
+        echo "skesa..."
+        '''
+
+rule spades_assembly:
+    input:
+        r1="sub/{sample}/{depth}/{rep}/S1.fastq.gz",
+        r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
+    output:
+        "sub/{sample}/{depth}/{rep}/spades.fasta"
+    run:
+        '''
+        echo "spades..."
+        '''
+
+rule shovill_assembly:
+    input:
+        r1="sub/{sample}/{depth}/{rep}/S1.fastq.gz",
+        r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
+    output:
+        "sub/{sample}/{depth}/{rep}/shovill.fasta"
+    run:
+        '''
+        echo "shovill..."
+        '''
+
+rule gather_assemblies:
+    input:
+        spades=expand("sub/{sample}/{depth}/{rep}/spades.fasta", sample=dat.ID, depth=dat.depth, rep=dat.rep),
+        skesa=expand("sub/{sample}/{depth}/{rep}/skesa.fasta", sample=dat.ID, depth=dat.depth, rep=dat.rep),
+        shovill=expand("sub/{sample}/{depth}/{rep}/shovill.fasta", sample=dat.ID, depth=dat.depth, rep=dat.rep)
+    output:
+        "sistr_input.txt"
+    run:
+        '''
+        echo "sistr input"
+        '''
+
+rule run_sistr:
+    input:
+        "sistr_input.txt"
+    output:
+        "SistrLIMS.xlsx"
+    run:
+        '''
+        echo stype_cli.py
+        '''
+
+rule evaluation:
+    input:
+        "SistrLIMS.xlsx"
+    output:
+        "lod_experiment_results.pdf"
+    run:
+        '''
+        echo "Make a pdf"
+        '''
+
+
