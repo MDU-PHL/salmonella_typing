@@ -11,6 +11,7 @@ import pathlib
 import inspect
 import itertools
 
+import sh
 import pandas as pd
 
 from cleo import Command, argument, option
@@ -36,7 +37,7 @@ class LODCommand(Command):
         option("seed", "s", "Seed for random number generator when generating seeds for subsampling reads", default=42, value_required=True, validator=Integer()),
         option("min_seed", "i", "Minimum seed value to randomly subsample reads", default=10, value_required=True, validator=Integer()),
         option("max_seed", "x", "Maximum seed value to randomly subsample reads", default=10**8, value_required=True, validator=Integer()),
-        option("resource_path", "r", "Path to Snakefile and config.yaml templates to use", default=f"{pathlib.Path(__file__).parent.parent / 'validation'/ 'limitOfDetection' / 'templates'}", value_required=True),
+        option("resource_path", "r", "Path to Snakefile and config.yaml templates to use", default=f"{pathlib.Path(__file__).parent.parent / 'limitOfDetection' / 'templates'}", value_required=True),
         option("control_path", "c", "Path to FASTA for positive controls to use", default=f"{pathlib.Path(__file__).parent.parent / 'data'}", value_required=True),
         option("threads", "t", "How many threads to give Snakemake", default=2, value_required=True, validator=Integer())
     ]
@@ -53,9 +54,12 @@ class LODCommand(Command):
         self.reps = list(range(1,self.reps+1))
         self.info("Generating LOD table...")
         self._generate_lod_table()
-        # self.outname = outname
-        # logger.info("Saving table...")
-        # self._save_lod_table()
+        self.workdir = pathlib.Path(self.workdir)
+        self.outname = self.workdir / "lod_experiment_input.csv"
+        self.info("Saving table...")
+        self._save_lod_table()
+        self._load_snakefile()
+        #self._run_snakemake()
     
     def _parse_args(self):
         '''
@@ -188,25 +192,28 @@ class LODCommand(Command):
         ------
         outname: file (csv format)
         """
-        self.tab_lod.to_csv(self.outname, index=False, sep='\t')
+        self.tab_lod = self.tab_lod.drop('ix', axis=1)
+        self.tab_lod.index.rename("ix", inplace=True)
+        self.tab_lod.to_csv(self.outname, index=True)
 
-# def main(filename, outname, depth, reps, seed, min_seed=10, max_seed=10**8):
-#     '''
-#     Make a "limit of detection" experiment
+    def _copy_files(self, target, source):
+        target.write_text(source.read_text())
 
-#     Input:
-#     -----
-#     filename: str (path to a file with at least three named columns: ID, R1, R2)
-#     outname: str (name of output filename)
-#     depth: list (a list of depth values: [10,20,30])
-#     reps: int (repeat each depth/sample combination how many times?)
-#     seed: int (set the seed value to generate random seeds for subsampling reads)
-#     min-seed: int (minimum value for a seed to subsample reads, default: 10)
-#     max-seed: int (maximum value for a seed to subsample reads, default:10^8)
+    def _load_snakefile(self):
+        '''
+        Copy over and modify as appropriate the Snakefile
+        '''
+        resource_path = pathlib.Path(self.resource_path)
+        snakef_in = resource_path / 'Snakefile'
+        conff_in = resource_path / 'config.yaml'
+        snakef_out = self.workdir / 'Snakefile'
+        conff_out = self.workdir / 'config.yaml'
+        self._copy_files(snakef_out, snakef_in)
+        self._copy_files(conff_out, conff_in)
 
-#     Output:
-#     ------
-#     outname: file (a file with a new experiment)
-#     '''
-#     lod = LOD()
-#     lod.run(filename, outname, depth, reps, seed, min_seed, max_seed)
+    def _run_snakemake(self):
+        '''
+        Run snakemake...
+        '''
+        sk = sh.Command('snakemake')
+        run = sk("-s", self.workdir / 'Snakefile', '--directory', self.workdir.absolute(), "--debug", "--verbose")
