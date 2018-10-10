@@ -59,7 +59,7 @@ class LODCommand(Command):
         self.info("Saving table...")
         self._save_lod_table()
         self._load_snakefile()
-        #self._run_snakemake()
+        self._run_snakemake()
     
     def _parse_args(self):
         '''
