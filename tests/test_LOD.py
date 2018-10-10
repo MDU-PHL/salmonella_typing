@@ -5,18 +5,22 @@ Testing LOD
 import pathlib
 import tempfile
 import itertools
+import shutil
+import os
 import pytest
 import tabulate
-import shutil
 import pandas as pd
 from cleo import Application, CommandTester
 from cleo.exceptions.exception import UsageException
 from salmonella_typing.validation.limitOfDetection.LODExperimentWorkflow import LODCommand
 
+TEST_DIR=os.getenv("TEST_LOD_DIR")
+TEST_CLEAN_DIR=os.getenv('TEST_LOD_DIR_CLEAN', True)
+
 @pytest.fixture(scope="class")
 def input_test_file(tmpdir_factory, request):
     datapath = pathlib.Path(__file__).parent
-    workdir = tempfile.TemporaryDirectory()
+    workdir = tempfile.TemporaryDirectory(dir=TEST_DIR)
     workpath = pathlib.Path(workdir.name)
     testfile = workpath.joinpath('test_input_lod.csv')
     datadir = workpath.joinpath("data")
@@ -36,8 +40,9 @@ def input_test_file(tmpdir_factory, request):
     request.cls.infile = str(testfile)
     request.cls.wd = str(workpath)
     yield
-    print("Cleaning up...")
-    workdir.cleanup()
+    if TEST_CLEAN_DIR:
+        print("Cleaning up...")
+        workdir.cleanup()
 
 def pytest_generate_tests(metafunc):
     # called once per each test function
