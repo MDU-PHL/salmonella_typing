@@ -9,23 +9,25 @@ configfile: "config.yaml"
 def stage_run(inputfile):
     '''
     Read the input file, create the necessary subdirectories and 
-    symlink the reads, then return a table that will be 
+    symlink the reads, then return a table that will be used in the 
+    workflow
     '''
     tab = pd.read_csv(inputfile, engine='python', sep=None)
     tab = tab.set_index('ix', drop=False)
     subdir = pathlib.Path.cwd().joinpath("sub")
     subdir.mkdir(exist_ok=True)
     for row in tab.itertuples():
-        r1 = pathlib.Path(row.R1)
-        r2 = pathlib.Path(row.R2)
         wd = subdir / row.ID / str(row.depth) / str(row.rep)
-        wd.mkdir(exist_ok=True, parents=True)
-        seed = wd / 'seed.txt'
-        seed.write_text(str(row.seed))
-        sr1 = wd / "R1.fastq.gz"
-        sr2 = wd / "R2.fastq.gz"
-        sr1.symlink_to(r1)
-        sr2.symlink_to(r2)
+        if not wd.exist():
+            r1 = pathlib.Path(row.R1)
+            r2 = pathlib.Path(row.R2)
+            wd.mkdir(exist_ok=True, parents=True)
+            seed = wd / 'seed.txt'
+            seed.write_text(str(row.seed))
+            sr1 = wd / "R1.fastq.gz"
+            sr2 = wd / "R2.fastq.gz"
+            sr1.symlink_to(r1)
+            sr2.symlink_to(r2)
     return tab
 
 dat = stage_run(config['inputfile'])
@@ -35,30 +37,73 @@ rule all:
         config['inputfile'],
         "lod_experiment_results.pdf"
 
-rule calculate_total_coverage:
+rule calculate_total_length:
     input:
         r1="data/{sample}/R1.fastq.gz",
         r2="data/{sample}/R2.fastq.gz"
     output:
-        "data/{sample}/depth.txt"
+        total_length="data/{sample}/total_length.txt"
     run:
-        '''
-        echo "mash"
-        '''
+        import pathlib
+        import io
+        import sh
+        import pandas as pd
+        seqkit = sh.Command('seqkit')
+        p = seqkit('stats', '-T', input.r1)
+        res = io.StringIO(p.stdout.decode('utf8'))
+        tab = pd.read_csv(res, engine='python', sep=None)
+        total_length = str(2*tab.sum_len.tolist()[0])
+        out = pathlib.Path(output.total_length).write_text(total_length)
+
+rule calculate_genome_size:
+    input:
+        r1="data/{sample}/R1.fastq.gz",
+        r2="data/{sample}/R2.fastq.gz"
+    output:
+        genome_size="data/{sample}/genome_size.txt"
+    threads: 2
+    run:
+        import pathlib
+        import tempfile
+        import re
+        import sh
+        pat = re.compile(r'[0-9]{1,2}\.[0-9]{1,6}e\+[0-9]{1,2}')
+        msh_out = tempfile.NamedTemporaryFile(delete=False)
+        msh_out.close()
+        mash = sh.Command("mash")
+        p = mash('sketch', '-o', msh_out.name, '-m', '5', '-r', '-k', '32', '-p', threads, input.r1)
+        out = p.stderr.decode('utf8')
+        genome_size = str(float(pat.search(out).group()))
+        pathlib.Path(output.genome_size).write_text(genome_size)
+        pathlib.Path(msh_out.name + '.msh').unlink()
 
 rule subsample_reads:
     input:
         r1="sub/{sample}/{depth}/{rep}/R1.fastq.gz",
         r2="sub/{sample}/{depth}/{rep}/R2.fastq.gz",
         seed="sub/{sample}/{depth}/{rep}/seed.txt",
-        depth="data/{sample}/depth.txt"
+        total_length="data/{sample}/total_length.txt",
+        genome_size="data/{sample}/genome_size.txt"
     output:
         r1="sub/{sample}/{depth}/{rep}/S1.fastq.gz",
         r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
     run:
-        '''
-        echo "seqkit..."
-        '''
+        import pathlib
+        import gzip
+        import sh
+        s1 = gzip.GzipFile(output.r1, 'wb')
+        s2 = gzip.GzipFile(output.r2, 'wb')
+        seqkit = sh.Command("seqkit")
+        seed = pathlib.Path(input.seed).read_text()
+        total_length = int(pathlib.Path(input.total_length).read_text())
+        genome_size = float(pathlib.Path(input.genome_size).read_text())
+        experiment_cov = float(wildcards.depth)
+        sub_sample_prop = format(experiment_cov * genome_size / total_length, '.2f')
+        p = seqkit('sample', '-p', sub_sample_prop, '-s', seed, '-j', threads, input.r1, _out=s1)
+        p = seqkit('sample', '-p', sub_sample_prop, '-s', seed, '-j', threads, input.r2, _out=s2)
+        s1.close()
+        s2.close()
+
 
 rule skesa_assembly:
     input:
@@ -66,10 +111,12 @@ rule skesa_assembly:
         r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
     output:
         "sub/{sample}/{depth}/{rep}/skesa.fasta"
+    threads: 2
     run:
-        '''
-        echo "skesa..."
-        '''
+        import sh
+        skesa_asm = output[0]
+        skesa = sh.Command('skesa')
+        p = skesa('--cores', threads, '--memory', '8', '--fastq', '--gz', input.r1, input.r2, '--vector_percent', 1, '--use_paired_ends', _out=skesa_asm)
 
 rule spades_assembly:
     input:
@@ -77,27 +124,41 @@ rule spades_assembly:
         r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
     output:
         "sub/{sample}/{depth}/{rep}/spades.fasta"
+    threads: 2 
     run:
-        '''
-        echo "spades..."
-        '''
+        import tempfile
+        import shutil
+        import sh
+        spades_asm = pathlib.Path(output[0])
+        outdir = tempfile.TemporaryDirectory()
+        spades = sh.Command('spades.py')
+        p = spades('-o', outdir.name, '-1', input.r1, '-2', input.r2, '-t', threads)
+        spades_contigs = pathlib.Path(outdir.name) / 'contigs.fasta'
+        shutil.copyfile(str(spades_contigs), str(spades_asm))
 
 rule shovill_assembly:
     input:
         r1="sub/{sample}/{depth}/{rep}/S1.fastq.gz",
-        r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz"
+        r2="sub/{sample}/{depth}/{rep}/S2.fastq.gz",
+        genome_size="data/{sample}/genome_size.txt"
     output:
         "sub/{sample}/{depth}/{rep}/shovill.fasta"
+    threads: 2
+    shadow: "shallow"
     run:
-        '''
-        echo "shovill..."
-        '''
+        import shutil
+        import sh
+        shovill = sh.Command('shovill')
+        genome_size = int(pathlib.Path(input.genome_size).read_text())
+        p = shovill('--gsize', str(genome_size), '--cpus', threads, '--R1', input.r1, '--R2', input.r2, '--outdir', 'shovill')
+        print(p.cmd[0].decode('utf8'))
+        shutil.copyfile('shovill/contigs.fa', output[0])
 
 rule gather_assemblies:
     input:
-        spades=expand("sub/{sample}/{depth}/{rep}/spades.fasta", sample=dat.ID, depth=dat.depth, rep=dat.rep),
-        skesa=expand("sub/{sample}/{depth}/{rep}/skesa.fasta", sample=dat.ID, depth=dat.depth, rep=dat.rep),
-        shovill=expand("sub/{sample}/{depth}/{rep}/shovill.fasta", sample=dat.ID, depth=dat.depth, rep=dat.rep)
+        spades=expand("sub/{sample}/{depth}/{rep}/spades.fasta", sample=dat.ID.unique(), depth=dat.depth.unique(), rep=dat.rep.unique()),
+        skesa=expand("sub/{sample}/{depth}/{rep}/skesa.fasta", sample=dat.ID.unique(), depth=dat.depth, rep=dat.rep.unique()),
+        shovill=expand("sub/{sample}/{depth}/{rep}/shovill.fasta", sample=dat.ID.unique(), depth=dat.depth.unique(), rep=dat.rep.unique())
     output:
         "sistr_input.txt"
     run:
