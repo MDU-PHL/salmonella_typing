@@ -1,1 +1,13 @@
 inputfile: 'lod_experiment_input.csv'
+
+run_spades: True
+run_shovill: True
+run_skesa: True
+
+threads_spades: 1
+threads_shovill: 1
+threads_skesa: 1
+
+mem_spades: 8
+mem_shovill: 8
+mem_skesa: 8
