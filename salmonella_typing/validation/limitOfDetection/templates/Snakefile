@@ -18,7 +18,7 @@ def stage_run(inputfile):
     subdir.mkdir(exist_ok=True)
     for row in tab.itertuples():
         wd = subdir / row.ID / str(row.depth) / str(row.rep)
-        if not wd.exist():
+        if not wd.exists():
             r1 = pathlib.Path(row.R1)
             r2 = pathlib.Path(row.R2)
             wd.mkdir(exist_ok=True, parents=True)
