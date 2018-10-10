@@ -157,7 +157,7 @@ rule shovill_assembly:
 rule gather_assemblies:
     input:
         spades=expand("sub/{sample}/{depth}/{rep}/spades.fasta", sample=dat.ID.unique(), depth=dat.depth.unique(), rep=dat.rep.unique()),
-        skesa=expand("sub/{sample}/{depth}/{rep}/skesa.fasta", sample=dat.ID.unique(), depth=dat.depth, rep=dat.rep.unique()),
+        skesa=expand("sub/{sample}/{depth}/{rep}/skesa.fasta", sample=dat.ID.unique(), depth=dat.depth.unique(), rep=dat.rep.unique()),
         shovill=expand("sub/{sample}/{depth}/{rep}/shovill.fasta", sample=dat.ID.unique(), depth=dat.depth.unique(), rep=dat.rep.unique())
     output:
         "sistr_input.txt"
