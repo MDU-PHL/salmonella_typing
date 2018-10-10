@@ -11,7 +11,7 @@ import shutil
 import pandas as pd
 from cleo import Application, CommandTester
 from cleo.exceptions.exception import UsageException
-from salmonella_typing.validation.limitOfDetection.gen_lod_experiment import LODCommand
+from salmonella_typing.validation.limitOfDetection.LODExperimentWorkflow import LODCommand
 
 @pytest.fixture(scope="class")
 def input_test_file(tmpdir_factory, request):
@@ -55,7 +55,7 @@ class TestLODCommand(object):
         )],
         'test_depth_none': [dict(params=[
          ('command', 'lod_generator')]
-        )]
+        )]  
     }
 
     def _gen_cmd(self, params):
