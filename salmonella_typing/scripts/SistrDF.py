@@ -4,9 +4,12 @@ output according to MMS136
 '''
 
 import re
+import logging
 
 import pandas as pd
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 MDUIDREG = re.compile(r'(?P<id>[0-9]{4}-[0-9]{5})-?(?P<itemcode>.{1,2})?')
 
@@ -144,6 +147,11 @@ class SistrDF(object):
         Given a row with SEQID column, return ID and ITEMCODE columns
         '''
         m = MDUIDREG.match(row.SEQID)
-        mduid = m.group('id')
-        itemcode = m.group('itemcode') if m.group('itemcode') else ''
+        if m is None:
+            logger.warning("The ID do not appear to follow MDU ID standards. Using SEQID directly.")
+            mduid = row.SEQID
+            itemcode = ''
+        else:
+            mduid = m.group('id')
+            itemcode = m.group('itemcode') if m.group('itemcode') else ''
         return pd.Series([mduid, itemcode], index=['ID', 'ITEMCODE'])
