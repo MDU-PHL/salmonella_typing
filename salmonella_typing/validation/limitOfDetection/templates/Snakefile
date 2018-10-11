@@ -1,8 +1,10 @@
 '''
 A Snakefile to perform limit of detection experiment
 '''
+import io
 import pathlib
 import pandas as pd
+import sh
 
 configfile: "config.yaml"
 
@@ -30,6 +32,16 @@ def stage_run(inputfile):
             sr2.symlink_to(r2)
     return tab
 
+def seqkit_stats(filename):
+    '''
+    Run seqkit stats and return a pandas table with the output
+    '''
+    seqkit = sh.Command('seqkit')
+    p = seqkit('stats', '-T', filename)
+    res = io.StringIO(p.stdout.decode('utf8'))
+    tab = pd.read_csv(res, engine='python', sep=None)
+    return tab
+
 dat = stage_run(config['inputfile'])
 
 rule all:
@@ -45,13 +57,7 @@ rule calculate_total_length:
         total_length="data/{sample}/total_length.txt"
     run:
         import pathlib
-        import io
-        import sh
-        import pandas as pd
-        seqkit = sh.Command('seqkit')
-        p = seqkit('stats', '-T', input.r1)
-        res = io.StringIO(p.stdout.decode('utf8'))
-        tab = pd.read_csv(res, engine='python', sep=None)
+        tab = seqkit_stats(input.r1)
         total_length = str(2*tab.sum_len.tolist()[0])
         out = pathlib.Path(output.total_length).write_text(total_length)
 
@@ -162,9 +168,19 @@ rule gather_assemblies:
     output:
         "sistr_input.txt"
     run:
-        '''
-        echo "sistr input"
-        '''
+        import pathlib
+        import pandas as pd
+        import sh
+        def parse_asm(filename):
+            asm_path = pathlib.Path(filename)
+            asm_full_path = asm_path.absolute().as_posix()
+            assembler = asm_path.stem
+            rep = int(asm_path.parent)
+            depth = int(asm_path.parent.parent)
+            sample = asm_path.parent.parent.parent
+            stats = seqkit_stats(asm_path_full_path)
+            
+
 
 rule run_sistr:
     input:
