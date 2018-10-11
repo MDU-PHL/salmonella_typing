@@ -193,9 +193,9 @@ rule gather_assemblies:
         for assembly in input.spades:
             asms.append(parse_asm(assembly))
         out = pd.concat(asms)
-	    out.drop('file', axis=1, inplace=True)
-	    out['SPECIES_EXP'] = 'Salmonella'
-	    out['SPECIES_OBS'] = 'Salmonella'
+        out.drop('file', axis=1, inplace=True)
+        out['SPECIES_EXP'] = 'Salmonella'
+        out['SPECIES_OBS'] = 'Salmonella'
         out.to_csv(output[0], sep='\t', index=False)
 
 
