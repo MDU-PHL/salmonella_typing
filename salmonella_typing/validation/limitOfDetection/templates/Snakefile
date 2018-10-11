@@ -157,7 +157,6 @@ rule shovill_assembly:
         shovill = sh.Command('shovill')
         genome_size = float(pathlib.Path(input.genome_size).read_text())
         p = shovill('--gsize', f"{genome_size:.0f}", '--cpus', threads, '--R1', input.r1, '--R2', input.r2, '--outdir', 'shovill')
-        print(p.cmd[0].decode('utf8'))
         shutil.copyfile('shovill/contigs.fa', output[0])
 
 rule gather_assemblies:
