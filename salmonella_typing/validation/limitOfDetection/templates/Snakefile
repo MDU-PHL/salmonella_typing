@@ -217,7 +217,7 @@ rule run_sistr:
         import pathlib
         import tempfile
         import sh
-        outfile = pathlib.Path(output[0]).absolute().as_posix()
+        outfile = pathlib.Path.cwd().joinpath(output[0]).absolute().as_posix()
         rundir = tempfile.TemporaryDirectory()
         rundir_path = pathlib.Path(rundir.name)
         tab = pd.read_csv(input[0], engine='python', sep=None)
