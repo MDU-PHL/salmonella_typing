@@ -171,6 +171,7 @@ rule gather_assemblies:
         import pathlib
         import pandas as pd
         import sh
+        asms = list()
         def parse_asm(filename):
             asm_path = pathlib.Path(filename)
             asm_full_path = asm_path.absolute().as_posix()
@@ -179,7 +180,20 @@ rule gather_assemblies:
             depth = int(asm_path.parent.parent)
             sample = asm_path.parent.parent.parent
             stats = seqkit_stats(asm_path_full_path)
-            
+            out = stats.insert(0, 'rep', rep)
+            out = out.insert(0, 'depth', depth)
+            out = out.inser(0, 'assembler', assembler)
+            out = out.inser(0, 'ASM', asm_full_path)
+            out = out.insert(0, 'ID', sample)
+            return out
+        for assembly in input.spades:
+            asms.append(parse_asm(assembly))
+        for assembly in input.skesa:
+            asms.append(parse_asm(assembly))
+        for assembly in input.spades:
+            asms.append(parse_asm(assembly))
+        out = pd.concat(asms)
+        out.to_csv(output[0], sep='\t', index=False)
 
 
 rule run_sistr:
