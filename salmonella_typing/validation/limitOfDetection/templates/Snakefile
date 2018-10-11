@@ -187,10 +187,11 @@ rule gather_assemblies:
             return out
         def gather(asm_list, outfile):
             out = pd.concat(asm_list)
+            out = out.reset_index(drop=False)
             out.drop('file', axis=1, inplace=True)
             out['SPECIES_EXP'] = 'Salmonella'
             out['SPECIES_OBS'] = 'Salmonella'
-            out['SEQID'] = out.apply(lambda x: f"{x.ID}-{x.index}", axis=1)
+            out['SEQID'] = out.apply(lambda x: f"{x.ID}-{x.name}", axis=1)
             out.to_csv(outfile, sep='\t', index=False)
         spades = list()
         for assembly in input.spades:
@@ -213,11 +214,14 @@ rule run_sistr:
     threads: 2
     run:
         import os
+        import shutil
         import pathlib
         import tempfile
         import sh
-        rundir = tempfile.TemporaryDirectory()
-        rundir_path = pathlib.Path(rundir.name)
+        outfile = pathlib.Path(output[0])
+        #rundir = tempfile.TemporaryDirectory()
+        rundir_path = pathlib.Path(wildcards.asm)
+        rundir_path.mkdir(exist_ok=True)
         tab = pd.read_csv(input[0], engine='python', sep=None)
         for row in tab.itertuples():
             sample_path = rundir_path / row.SEQID
@@ -226,12 +230,12 @@ rule run_sistr:
             asm_path.symlink_to(row.ASM)
         inputfile = pathlib.Path(input[0])
         inputfilesym = rundir_path / 'sistr_input.txt'
-        inputfilesym.symlink_to(inputfile)
+        inputfilesym.symlink_to(inputfile.absolute().as_posix())
+        os.chdir(rundir_path.absolute().as_posix())
         stype_cli = sh.Command('stype_cli.py')
-        stype_cli('run', '-m', '-t', threads, '-w', rundir.name)
-        outfile = pathlib.Path(output[0])
-        stype_outfile = pathlib.Path(rundir_path / 'SISTR_LIMS.xlsx')
-        os.copyfile(stype_outfile.absolute().to_posix(), outfile.absolute().to_posix())
+        stype_cli('run', '-m', '-t', threads, inputfilesym.name)
+        stype_outfile = pathlib.Path('SISTR_LIMS.xlsx')
+        shutil.copyfile(stype_outfile.absolute().as_posix(), outfile.absolute().as_posix())
 
 
     # shell:
@@ -243,7 +247,7 @@ rule run_sistr:
 
 rule evaluation:
     input:
-        "SISTR_LIMS.xlsx"
+        expand("SISTR_LIMS_{asm}.xlsx", asm=['spades', 'skesa', 'shovill'])
     output:
         "lod_experiment_results.pdf"
     run:
