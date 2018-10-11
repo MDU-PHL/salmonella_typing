@@ -52,6 +52,8 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   pip install pandas
   pip install XlsxWriter
   pip install sh
+  pip install tabulate
+  pip install pytest
 
   # installs to enable full LOD
   conda install spades==3.12.0
