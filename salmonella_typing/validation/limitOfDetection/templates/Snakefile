@@ -220,7 +220,7 @@ rule run_sistr:
         import sh
         outfile = pathlib.Path(output[0]).absolute().as_posix()
         rundir = tempfile.TemporaryDirectory()
-        rundir_path = pathlib.Path(wildcards.asm)
+        rundir_path = pathlib.Path(rundir.name)
         tab = pd.read_csv(input[0], engine='python', sep=None)
         for row in tab.itertuples():
             sample_path = rundir_path / row.SEQID
