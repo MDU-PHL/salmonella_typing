@@ -116,7 +116,7 @@ rule skesa_assembly:
         import sh
         skesa_asm = output[0]
         skesa = sh.Command('skesa')
-        p = skesa('--cores', threads, '--memory', '8', '--fastq', '--gz', input.r1, input.r2, '--vector_percent', 1, '--use_paired_ends', _out=skesa_asm)
+        p = skesa('--cores', threads, '--memory', '8', '--gz', '--fastq', input.r1, input.r2, '--vector_percent', 1, '--use_paired_ends', _out=skesa_asm)
 
 rule spades_assembly:
     input:
@@ -149,8 +149,8 @@ rule shovill_assembly:
         import shutil
         import sh
         shovill = sh.Command('shovill')
-        genome_size = int(pathlib.Path(input.genome_size).read_text())
-        p = shovill('--gsize', str(genome_size), '--cpus', threads, '--R1', input.r1, '--R2', input.r2, '--outdir', 'shovill')
+        genome_size = float(pathlib.Path(input.genome_size).read_text())
+        p = shovill('--gsize', f"{genome_size:.0f}", '--cpus', threads, '--R1', input.r1, '--R2', input.r2, '--outdir', 'shovill')
         print(p.cmd[0].decode('utf8'))
         shutil.copyfile('shovill/contigs.fa', output[0])
 
