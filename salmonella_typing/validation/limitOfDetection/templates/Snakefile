@@ -218,10 +218,9 @@ rule run_sistr:
         import pathlib
         import tempfile
         import sh
-        outfile = pathlib.Path(output[0])
-        #rundir = tempfile.TemporaryDirectory()
+        outfile = pathlib.Path(output[0]).absolute().as_posix()
+        rundir = tempfile.TemporaryDirectory()
         rundir_path = pathlib.Path(wildcards.asm)
-        rundir_path.mkdir(exist_ok=True)
         tab = pd.read_csv(input[0], engine='python', sep=None)
         for row in tab.itertuples():
             sample_path = rundir_path / row.SEQID
@@ -229,21 +228,13 @@ rule run_sistr:
             sample_path.mkdir()
             asm_path.symlink_to(row.ASM)
         inputfile = pathlib.Path(input[0])
-        inputfilesym = rundir_path / 'sistr_input.txt'
+        inputfilesym = rundir_path / 'input.txt'
         inputfilesym.symlink_to(inputfile.absolute().as_posix())
         os.chdir(rundir_path.absolute().as_posix())
         stype_cli = sh.Command('stype_cli.py')
         stype_cli('run', '-m', '-t', threads, inputfilesym.name)
         stype_outfile = pathlib.Path('SISTR_LIMS.xlsx')
-        shutil.copyfile(stype_outfile.absolute().as_posix(), outfile.absolute().as_posix())
-
-
-    # shell:
-    #     '''
-    #     mkdir -p {wildcards.asm} && cd {wildcards.asm}
-    #     ln -s ../{input[0]} sistr_input.txt
-    #     stype_cli.py run -t {threads} -m {input[0]}
-    #     '''
+        shutil.copyfile(stype_outfile.absolute().as_posix(), outfile)
 
 rule evaluation:
     input:
