@@ -218,9 +218,6 @@ rule run_sistr:
         import pathlib
         import tempfile
         import sh
-        # snakedir = pathlib.Path.cwd()
-        # rundir = tempfile.TemporaryDirectory()
-        # rundir_path = pathlib.Path(rundir.name)
         rundir_path = pathlib.Path.cwd()
         tab = pd.read_csv(input[0], engine='python', sep=None)
         for row in tab.itertuples():
@@ -228,15 +225,9 @@ rule run_sistr:
             asm_path = sample_path / 'contigs.fa'
             sample_path.mkdir()
             asm_path.symlink_to(row.ASM)
-        # inputfile = pathlib.Path(input[0])
-        # inputfilesym = rundir_path / 'input.txt'
-        # inputfilesym.symlink_to(inputfile.absolute().as_posix())
-        # os.chdir(rundir_path.absolute().as_posix())
         stype_cli = sh.Command('stype_cli.py')
         stype_cli('run', '-m', '-t', threads, input[0])
-        # stype_outfile = pathlib.Path.cwd().joinpath('SISTR_LIMS.xlsx').absolute().as_posix()
-        # os.chdir(snakedir)
-        shutil.copyfile('SISTR_LIMS.xlsx', outfile[0])
+        shutil.copyfile('SISTR_LIMS.xlsx', output[0])
 
 rule evaluation:
     input:
