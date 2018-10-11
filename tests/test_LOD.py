@@ -40,7 +40,7 @@ def input_test_file(tmpdir_factory, request):
     request.cls.infile = str(testfile)
     request.cls.wd = str(workpath)
     yield
-    if TEST_CLEAN_DIR:
+    if bool(int(TEST_CLEAN_DIR)):
         print("Cleaning up...")
         workdir.cleanup()
 
