@@ -32,12 +32,15 @@ def stage_run(inputfile):
             sr2.symlink_to(r2)
     return tab
 
-def seqkit_stats(filename):
+def seqkit_stats(filename, all=False):
     '''
     Run seqkit stats and return a pandas table with the output
     '''
     seqkit = sh.Command('seqkit')
-    p = seqkit('stats', '-T', filename)
+    seqkit = seqkit.bake('stats')
+    if all:
+        seqkit = seqkit.bake('--all')
+    p = seqkit('-T', filename)
     res = io.StringIO(p.stdout.decode('utf8'))
     tab = pd.read_csv(res, engine='python', sep=None)
     return tab
@@ -177,7 +180,7 @@ rule gather_assemblies:
             rep = int(asm_path.parent.name)
             depth = int(asm_path.parent.parent.name)
             sample = asm_path.parent.parent.parent.name
-            out = seqkit_stats(asm_full_path)
+            out = seqkit_stats(asm_full_path, all=True)
             out.insert(0, 'rep', rep)
             out.insert(0, 'depth', depth)
             out.insert(0, 'assembler', assembler)
@@ -231,7 +234,8 @@ rule run_sistr:
 
 rule evaluation:
     input:
-        expand("SISTR_LIMS_{asm}.xlsx", asm=['spades', 'skesa', 'shovill'])
+        sistr_res = expand("SISTR_LIMS_{asm}.xlsx", asm=['spades', 'skesa', 'shovill']),
+        sistr_metad = expand('sistr_input_{asm}.txt', asm=['spades', 'skesa', 'shovill'])
     output:
         "lod_experiment_results.pdf"
     run:
