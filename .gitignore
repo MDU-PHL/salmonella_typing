@@ -10,3 +10,4 @@ config_sistr.yaml
 sistr_out*
 .DS_Store
 .vscode
+.Rproj.user
