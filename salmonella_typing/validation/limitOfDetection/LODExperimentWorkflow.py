@@ -51,6 +51,8 @@ class LODCommand(Command):
         self.fn = pathlib.Path(self.infile)
         self.info("Loading input table...")
         self._read_table()
+        self.info("Creating the data subfolder structure...")
+        self._create_data_subfolder()
         self.info("Generating range of reps...")
         self.reps = list(range(1, self.reps + 1))
         self.info("Generating LOD table...")
@@ -128,7 +130,25 @@ class LODCommand(Command):
         else:
             raise ValueError(f"No rule availalbe to load file with suffix: {fn.suffix}")
         self.tab = tab
-            
+
+    def _create_data_subfolder(self):
+        '''
+        Given the input data, create a subfolder called data, with subfolder 
+        named after each isolate, and then symlink the reads in to the
+        subfolders
+        '''
+        workdir = pathlib.Path(self.workdir)
+        datadir = workdir / 'data'
+        datadir.mkdir(exist_ok=True)
+        for row in self.itertuples():
+            sampledir = datadir / row.ID
+            sampledir.mkdir(exist_ok=True)
+            r1 = sampledir / 'R1.fastq.gz'
+            r2 = sampledir / 'R2.fastq.gz'
+            if not r1.exist():
+                r1.symlink_to(row.R1)
+            if not r2.exist():
+                r2.symlink_to(row.R2)
 
     def _generate_lod_table(self):
         '''
