@@ -33,7 +33,7 @@ class LODCommand(Command):
     options = [
         option("workdir", "w", "Change working directory",  default=f"{pathlib.Path.cwd().absolute()}", value_required=True),
         option("depth", "d", "Comma-separated list of values (e.g., 10,20,30).", default=None, value_required=True),
-        option("reps", "e", "Number of replicates of each depth for each sample", default=2, value_required=True),
+        option("reps", "e", "Number of replicates of each depth for each sample", default=2, value_required=True, validator=Integer()),
         option("seed", "s", "Seed for random number generator when generating seeds for subsampling reads", default=42, value_required=True, validator=Integer()),
         option("min_seed", "i", "Minimum seed value to randomly subsample reads", default=10, value_required=True, validator=Integer()),
         option("max_seed", "x", "Maximum seed value to randomly subsample reads", default=10**8, value_required=True, validator=Integer()),
@@ -51,7 +51,8 @@ class LODCommand(Command):
         self.fn = pathlib.Path(self.infile)
         self.info("Loading input table...")
         self._read_table()
-        self.reps = list(range(1,self.reps+1))
+        self.info("Generating range of reps...")
+        self.reps = list(range(1, self.reps + 1))
         self.info("Generating LOD table...")
         self._generate_lod_table()
         self.workdir = pathlib.Path(self.workdir)
