@@ -140,7 +140,7 @@ class LODCommand(Command):
         workdir = pathlib.Path(self.workdir)
         datadir = workdir / 'data'
         datadir.mkdir(exist_ok=True)
-        for row in self.itertuples():
+        for row in self.tab.itertuples():
             sampledir = datadir / row.ID
             sampledir.mkdir(exist_ok=True)
             r1 = sampledir / 'R1.fastq.gz'
@@ -237,4 +237,4 @@ class LODCommand(Command):
         Run snakemake...
         '''
         sk = sh.Command('snakemake')
-        run = sk("-s", self.workdir / 'Snakefile', '--directory', self.workdir.absolute(), "--debug", "--verbose")
+        run = sk("-j", f"{threads}", "-s", self.workdir / 'Snakefile', '--directory', self.workdir.absolute(), "--debug", "--verbose")
