@@ -140,14 +140,14 @@ class LODCommand(Command):
         workdir = pathlib.Path(self.workdir)
         datadir = workdir / 'data'
         datadir.mkdir(exist_ok=True)
-        for row in self.itertuples():
+        for row in self.tab.itertuples():
             sampledir = datadir / row.ID
             sampledir.mkdir(exist_ok=True)
             r1 = sampledir / 'R1.fastq.gz'
             r2 = sampledir / 'R2.fastq.gz'
-            if not r1.exist():
+            if not r1.exists():
                 r1.symlink_to(row.R1)
-            if not r2.exist():
+            if not r2.exists():
                 r2.symlink_to(row.R2)
 
     def _generate_lod_table(self):
