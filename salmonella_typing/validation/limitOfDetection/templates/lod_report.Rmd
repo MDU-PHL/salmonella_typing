@@ -22,6 +22,8 @@ library(readxl)
 library(glue)
 library(ggplot2)
 library(kableExtra)
+testing = TRUE
+asms <- c('spades', 'skesa', 'shovill')
 ```
 
 ```{r, functions}
@@ -32,42 +34,69 @@ check_positive_control <- function(tab) {
   return(stat == 'PASS')
 }
 
+get_file <- function(pattern, file_list) {
+  ix <- which(grepl(pattern = pattern, file_list))
+  return(file_list[ix])
+}
+
 load_data <- function(skobj, asm){
-  sistr_res <- skobj@input[[glue('sistr_res_{asm}')]]
-  sistr_metad <- skobj@input[[glue('sistr_metat_{asm}')]]
+  sistr_res <- get_file(asm, skobj@input[['sistr_res']])
+  sistr_metad <- get_file(asm, skobj@input[['sistr_metad']])
   res <- read_xlsx(sistr_res, sheet='ALL')
   metad <- read_tsv(sistr_metad)
   
+  res_raw <- res %>%
+    select(-ID) %>%
+    left_join(metad, c("SEQID" = "SEQID"))
+
+  res_clean <- res_raw %>%
+    select(ID, SEQID, assembler, depth, rep, STATUS, num_seqs, sum_len, min_len, max_len, N50) %>%
+    mutate(POS_CONTROL_PASS = check_positive_control(.)) %>%
+    filter(SEQID != '9999-99999-1') %>%
+    mutate(OUTCOME = if_else(STATUS == 'PASS', 1, 0))
+  
+  return(list(raw = res_raw,
+              clean = res_clean))
+}
+
+if(testing) {
+  base_dir = '~/Downloads'
+  setClass('sk', representation(input = 'list'))
+  skobj <- new(Class = 'sk', input = list(
+    'sistr_res' = sapply(asms, function(asm) file.path(base_dir, glue('SISTR_LIMS_{asm}.xlsx'))),
+    'sistr_metad' = sapply(asms, function(asm) file.path(base_dir, glue('sistr_input_{asm}.txt')))
+  ))
 }
 ```
 
 
 ```{r, load_data}
-base_dir = '~/Downloads/'
-sistr_spades = file.path(base_dir, 'SISTR_LIMS_spades.xlsx')
-exp_spades = file.path(base_dir, 'sistr_input_spades.txt')
-res <- read_xlsx(sistr_spades, sheet='ALL')
-metad <- read_tsv(exp_spades)
-res_raw <- res %>%
-  select(-ID) %>%
-  left_join(metad, c("SEQID" = "SEQID")) 
 
-res_clean <- res_raw %>%
-  select(ID, SEQID, assembler, depth, rep, STATUS, num_seqs, sum_len, min_len, max_len) %>%
-  mutate(POS_CONTROL_PASS = check_positive_control(.)) %>%
-  filter(SEQID != '9999-99999-1') %>%
-  mutate(OUTCOME = if_else(STATUS == 'PASS', 1, 0))
+dat <- lapply(asms, function(asm) load_data(skobj, asm))
 
-res_clean %>%
-  group_by(depth) %>%
+clean_dat <- bind_rows(lapply(dat, function(d) d$clean))
+
+clean_dat %>%
+  group_by(assembler, ID, depth) %>%
   summarise(TOTAL_PASS = sum(OUTCOME),
             PROP_PASS = sum(OUTCOME)/n()) %>%
   ggplot(aes(x = depth, y = PROP_PASS)) +
     geom_point() +
     xlab("Depth") +
-    ylab("Proportion Passed")
+    ylab("Proportion Passed") +
+    facet_grid(ID~assembler)
 
-ggplot(res_clean, aes(x = max_len, y = OUTCOME)) +
+clean_dat %>%
+  group_by(depth, ID, assembler) %>%
+  summarise(TOTAL_PASS = sum(OUTCOME),
+            PROP_PASS = sum(OUTCOME)/n())
+
+clean_dat %>%
+  filter(ID == "SRR7284860") %>%
+  ggplot(aes(x = depth, N50, col = assembler)) +
+  geom_point()
+
+ggplot(clean_dat, aes(x = max_len, y = OUTCOME)) +
   geom_jitter()
 ```
 
