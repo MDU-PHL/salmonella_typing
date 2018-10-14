@@ -125,7 +125,7 @@ rule skesa_assembly:
         import sh
         skesa_asm = output[0]
         skesa = sh.Command('skesa')
-        p = skesa('--cores', threads, '--memory', '8', '--gz', '--fastq', input.r1, input.r2, '--vector_percent', 1, '--use_paired_ends', _out=skesa_asm)
+        p = skesa('--cores', threads, '--memory', '8', '--gz', '--fastq', f"{input.r1},{input.r2}", '--vector_percent', 1, '--use_paired_ends', _out=skesa_asm)
 
 rule spades_assembly:
     input:
