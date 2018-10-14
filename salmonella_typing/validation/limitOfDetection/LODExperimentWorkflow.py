@@ -237,4 +237,4 @@ class LODCommand(Command):
         Run snakemake...
         '''
         sk = sh.Command('snakemake')
-        run = sk("-j", f"{threads}", "-s", self.workdir / 'Snakefile', '--directory', self.workdir.absolute(), "--debug", "--verbose")
+        run = sk("-j", f"{self.threads}", "-s", self.workdir / 'Snakefile', '--directory', self.workdir.absolute(), "--debug", "--verbose")
