@@ -12,3 +12,7 @@ sistr_out*
 .vscode
 .Rproj.user
 *Rproj
+salmonella_typing/validation/limitOfDetection/data
+salmonella_typing/validation/limitOfDetection/templates/lod_report*
+.Rhistory
+lod_mms136.xlsx
