@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: continuumio/miniconda3:4.5.4
+From: continuumio/miniconda3:4.5.11
 
 %help
 A Singularity image for sistr
@@ -23,10 +23,9 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
 
 %setup
   cp -R salmonella_typing $SINGULARITY_ROOTFS/opt/salmonella_typing
-  chmod -R 0444 $SINGULARITY_ROOTFS/opt/salmonella_typing
-  chmod 0555 $SINGULARITY_ROOTFS/opt/salmonella_typing/scripts/*
-  chmod 0555 $SINGULARITY_ROOTFS/opt/salmonella_typing/stype_cli.py
-  find $SINGULARITY_ROOTFS/opt/salmonella_typing -type d -exec chmod 0555 {} \;
+  cp -R data $SINGULARITY_ROOTFS/opt/salmonella_typing/data
+  mkdir -p $SINGULARITY_ROOTFS/opt/salmonella_typing/.python_egg_cache/sistr_cmd-1.0.2-py3.6.egg-tmp/sistr/data
+  cp -R data/* $SINGULARITY_ROOTFS/opt/salmonella_typing/.python_egg_cache/sistr_cmd-1.0.2-py3.6.egg-tmp/sistr/data
 
 %post
  # set versions of software to install
@@ -65,9 +64,9 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   echo "Sorting some env variables..."
   echo "All DBs updated on $(date "+%Y-%m-%d")" > /etc/dbupdate
   chmod 555 /etc/dbupdate
-
-  sistr /opt/salmonella_typing/data/SentericaLT2.fasta
   
+  sistr /opt/salmonella_typing/data/SentericaLT2.fasta
+
   echo "Done"
 
 %runscript
