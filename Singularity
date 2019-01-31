@@ -64,6 +64,7 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   echo "Sorting some env variables..."
   echo "All DBs updated on $(date "+%Y-%m-%d")" > /etc/dbupdate
   chmod 555 /etc/dbupdate
+  chmod 755 /opt/salmonella_typing/stype_cli.py
   
   sistr /opt/salmonella_typing/data/SentericaLT2.fasta
 
