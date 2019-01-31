@@ -8,7 +8,8 @@ configfile: 'config_sistr.yaml'
 input_file = config['input_file']
 stm_control = config['stm_control']
 
-SAMPLES = pandas.read_csv(input_file, sep=None, engine='python', encoding='utf8').set_index("SEQID", drop=False)
+SAMPLES = pandas.read_csv(input_file, sep=None, engine='python',
+                          encoding='utf8').set_index("SEQID", drop=False)
 
 rule all:
     input:
@@ -17,11 +18,11 @@ rule all:
 
 rule test_controls:
     input:
-        stm=stm_control,
+        stm = stm_control,
     output:
         "sistr_control.csv"
     params:
-        prefix="sistr_control"
+        prefix = "sistr_control"
     threads: 2
     shell:
         """
@@ -32,8 +33,8 @@ rule test_controls:
 rule run_sistr:
     input:
         "sistr_control.csv",
-        asm="{sample}/contigs.fa"
-        
+        asm = "{sample}/contigs.fa"
+
     output:
         "{sample}/sistr.csv"
     threads: 2
@@ -43,14 +44,22 @@ rule run_sistr:
         sistr -i {input.asm:q} {wildcards.sample} -f csv -o {wildcards.sample}/sistr -T $DIR --qc --threads {threads}
         """
 
-rule gather_results:
+rule gather:
+    input: expand("{sample}/sistr.csv", sample=SAMPLES.index)
+    output: "sistr_concat.csv"
+    run:
+        combined_tab = pd.concat(
+            [pd.read_csv(f, engine='python', sep=None) for f in input])
+        combined_tab.to_csv(output[0], index=False)
+
+rule process_results:
     input:
-        res=expand("{sample}/sistr.csv", sample=SAMPLES.index),
-        cont="sistr_control.csv"
+        res = "sistr_concat.csv",
+        cont = "sistr_control.csv"
     output:
         "SISTR_LIMS.xlsx"
     params:
-        prefix="SISTR_LIMS"
+        prefix = "SISTR_LIMS"
     shell:
         '''
         stype_cli.py parse -l -p {params.prefix} {input.cont} {input.res}
