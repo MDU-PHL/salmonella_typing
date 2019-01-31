@@ -117,7 +117,7 @@ class SistrDF(object):
         '''
         if summary:
             output_cols = ['SEQID', 'cgmlst_subspecies',
-                           'serovar', 'h1', 'h2', 'o_antigen', 'STATUS']
+                           'serovar', 'o_antigen', 'h1', 'h2', 'STATUS']
         else:
             output_cols = self._obj.columns
 
