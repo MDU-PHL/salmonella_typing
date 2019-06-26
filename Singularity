@@ -55,11 +55,11 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   pip install pytest
 
   # installs to enable full LOD
-  conda install spades==3.12.0
-  conda install skesa==2.2
-  conda install shovill==1.0.1
-  conda install seqkit==0.9.0
-  conda install mash==2.0
+  # conda install spades==3.12.0
+  # conda install skesa==2.2
+  # conda install shovill==1.0.1
+  # conda install seqkit==0.9.0
+  # conda install mash==2.0
  
   echo "Sorting some env variables..."
   echo "All DBs updated on $(date "+%Y-%m-%d")" > /etc/dbupdate
