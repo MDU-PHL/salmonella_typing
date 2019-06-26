@@ -31,6 +31,8 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
  # set versions of software to install
   VERSION=1.0.2
 
+  apt-get update && apt-get install --yes subversion
+
   export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   export PYTHON_EGG_CACHE=/opt/salmonella_typing/.python_egg_cache
   export PYTHONNOUSERSITE=NO
@@ -61,9 +63,10 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   # conda install seqkit==0.9.0
   # conda install mash==2.0
  
+ svn export https://github.com/phac-nml/sistr_cmd.git/branches/sistr_cmd_update_2018/sistr/data /opt/sistr_db 
+
   echo "Sorting some env variables..."
-  echo "All DBs updated on $(date "+%Y-%m-%d")" > /etc/dbupdate
-  chmod 555 /etc/dbupdate
+  echo "export DB_UPDATE=\"All DBs updated on $(stat -c %y /opt/sistr_db/sistr.msh)\"" >> $SINGULARITY_ENVIRONMENT
   chmod 755 /opt/salmonella_typing/stype_cli.py
   
   sistr /opt/salmonella_typing/data/SentericaLT2.fasta
