@@ -19,9 +19,6 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   PY_VERSION=3.7
   SISTR_VERSION=1.0.2
   cp -R salmonella_typing $SINGULARITY_ROOTFS/opt/salmonella_typing
-  cp -R salmonella_typing/data $SINGULARITY_ROOTFS/opt/salmonella_typing/data
-  #mkdir -p $SINGULARITY_ROOTFS/opt/salmonella_typing/.python_egg_cache/sistr_cmd-${SISTR_VERSION}-py${PY_VERSION}.egg-tmp/sistr/data
-  #cp -R salmonella_typing/data/* $SINGULARITY_ROOTFS/opt/salmonella_typing/.python_egg_cache/sistr_cmd-${SISTR_VERSION}-py${PY_VERSION}.egg-tmp/sistr/data
 
 %post
  # set versions of software to install
