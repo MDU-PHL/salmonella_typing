@@ -51,8 +51,8 @@ rule gather:
     input: expand("{sample}/sistr.csv", sample=SAMPLES.index)
     output: "sistr_concat.csv"
     run:
-        combined_tab = pd.concat(
-            [pd.read_csv(f, engine='python', sep=None) for f in input])
+        import pandas
+        combined_tab = pandas.concat([pandas.read_csv(f, engine='python', sep=None) for f in input])
         combined_tab.to_csv(output[0], index=False)
 
 rule process_results:
