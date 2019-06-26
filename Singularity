@@ -16,6 +16,8 @@ export PYTHONPATH=/opt/salmonella_typing
 export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
 
 %setup
+  PY_VERSION=3.7
+  SISTR_VERSION=1.0.2
   cp -R salmonella_typing $SINGULARITY_ROOTFS/opt/salmonella_typing
   cp -R data $SINGULARITY_ROOTFS/opt/salmonella_typing/data
   mkdir -p $SINGULARITY_ROOTFS/opt/salmonella_typing/.python_egg_cache/sistr_cmd-1.0.2-py3.6.egg-tmp/sistr/data
@@ -23,7 +25,10 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
 
 %post
  # set versions of software to install
-  VERSION=1.0.2
+  SISTR_VERSION=1.0.2
+  SISTR_BUILD=py37_3
+
+  SNAKEMAKE_VERSION=5.5.1
 
   apt-get update && apt-get install --yes subversion
 
@@ -37,18 +42,19 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   conda config --add channels r
   conda config --add channels bioconda
 
-  conda install sistr_cmd=$VERSION
-  conda install snakemake
-  conda install pip
+  conda install sistr_cmd=${SISTR_VERSION}=${SISTR_BUILD}
+  conda install datrie=0.7.1=py37h7b6447c_1
 
   pip install -U pip
   pip install -U setuptools
-  pip install cleo
+  pip install cleo==0.6.8
   pip install pandas
   pip install XlsxWriter
   pip install sh
   pip install tabulate
   pip install pytest
+  pip install jinja2
+  pip install snakemake==${SNAKEMAKE_VERSION}
 
   # installs to enable full LOD
   # conda install spades==3.12.0
