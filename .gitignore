@@ -17,3 +17,4 @@ salmonella_typing/validation/limitOfDetection/templates/lod_report*
 .Rhistory
 lod_mm136.xlsx
 .vagrant
+*.simg
