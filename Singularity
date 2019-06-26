@@ -76,7 +76,7 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
 %runscript
   echo "Welcome to MDU SALMONELLA TYPING WORKFLOW" >&2
   echo "Running sistr version $VERSION" >&2
-  cat /etc/dbupdate >&2
+  echo $DB_UPDATE >&2
   exec stype_cli.py "$@"
 
 %test
