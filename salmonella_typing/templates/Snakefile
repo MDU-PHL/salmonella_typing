@@ -11,6 +11,9 @@ stm_control = config['stm_control']
 SAMPLES = pandas.read_csv(input_file, sep=None, engine='python',
                           encoding='utf8').set_index("SEQID", drop=False)
 
+def get_asm(wildcards):
+    return SAMPLES.loc[wildcards.sample]["ASM"]
+
 rule all:
     input:
         "SISTR_LIMS.xlsx",
@@ -33,7 +36,7 @@ rule test_controls:
 rule run_sistr:
     input:
         "sistr_control.csv",
-        asm = "{sample}/contigs.fa"
+        asm = get_asm
 
     output:
         "{sample}/sistr.csv"
