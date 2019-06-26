@@ -11,7 +11,7 @@ application.add(RunSistrWorkflow())
 application.add(CleanSistrWorkflow())
 application.add(UnlockSistrWorkflow())
 application.add(ParseSistrOuput())
-application.add(LODCommand())
+#application.add(LODCommand())
 
 if __name__ == '__main__':
     application.run()
