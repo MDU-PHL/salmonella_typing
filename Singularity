@@ -10,15 +10,9 @@ Build 1.0
 sistr
 
 %environment
-VERSION=1.0.2
-PYTHON_EGG_CACHE=/opt/salmonella_typing/.python_egg_cache
-PYTHONNOUSERSITE=NO
-PYTHONPATH=/opt/salmonella_typing
-PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
-export VERSION
-export PYTHON_EGG_CACHE
-export PYTHONNOUSERSITE
-export PYTHONPATH
+export SISTR_VERSION=1.0.2
+export PYTHONNOUSERSITE=NO
+export PYTHONPATH=/opt/salmonella_typing
 export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
 
 %setup
