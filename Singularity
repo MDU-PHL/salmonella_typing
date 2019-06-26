@@ -81,9 +81,6 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
 
 %test
   echo "Testing sistr"
-  PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
-  PYTHON_EGG_CACHE=/opt/salmonella_typing/.python_egg_cache
-  PYTHONNOUSERSITE=NO
-  PYTHONPATH=/opt/salmonella_typing
-  sistr /opt/salmonella_typing/data/SentericaLT2.fasta
+  stype_cli.py run input_test.txt -vvv
+  rm -rf 9999-99999-1/ *sistr* *SISTR*
 
