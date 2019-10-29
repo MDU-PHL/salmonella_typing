@@ -28,13 +28,13 @@ if 'pytest' in sys.modules:
 
 ### FILTERS ###
 
-def filter_edge_case_sophia(tab):
+def filter_edge_case_sofia(tab):
     '''
 
-    >>> res = filter_edge_case_sophia(test_tab)
-    >>> pd.testing.assert_series_equal(res, test_tab.filter_edge_case_sophia)
+    >>> res = filter_edge_case_sofia(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.filter_edge_case_sofia)
     '''
-    true_serovar = 'Sophia'
-    new_serovar = tab.apply(lambda x: true_serovar if x.rule_edge_case_sophia else np.nan, axis=1)
-    new_serovar.name = "filter_edge_case_sophia"
+    true_serovar = 'Sofia'
+    new_serovar = tab.apply(lambda x: true_serovar if x.rule_edge_case_sofia else np.nan, axis=1)
+    new_serovar.name = "filter_edge_case_sofia"
     return new_serovar

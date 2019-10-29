@@ -309,10 +309,10 @@ def rule_edge_case_monophasic_typhimurium(tab):
     mask.name = 'rule_edge_case_monophasic_typhimurium'
     return mask
 
-def rule_edge_case_sophia(tab):
+def rule_edge_case_sofia(tab):
     '''
-    It has been noticed that SISTR will incorrectly classify Sophia serovars
-    as Paratyphi B, when Sophia is subspecies salamae
+    It has been noticed that SISTR will incorrectly classify Sofia serovars
+    as Paratyphi B, when Sofia is subspecies salamae
     This happens when:
     cgmlst_subspecies="salamae"
     h1="b"
@@ -321,8 +321,8 @@ def rule_edge_case_sophia(tab):
     serovar="Paratyphi B var. Java monophasic"
     serovar_antigen=="II 1,4,[5],12,[27]:b:[e,n,x]"
 
-    >>> res = rule_edge_case_sophia(test_tab)
-    >>> pd.testing.assert_series_equal(res, test_tab.rule_edge_case_sophia)
+    >>> res = rule_edge_case_sofia(test_tab)
+    >>> pd.testing.assert_series_equal(res, test_tab.rule_edge_case_sofia)
     '''
     query = ' and '.join([
         'cgmlst_subspecies=="salamae"',
@@ -334,5 +334,5 @@ def rule_edge_case_sophia(tab):
         'serovar_antigen=="II 1,4,[5],12,[27]:b:[e,n,x]"'
     ])
     mask = tab.eval(query)
-    mask.name = "rule_edge_case_sophia"
+    mask.name = "rule_edge_case_sofia"
     return mask
