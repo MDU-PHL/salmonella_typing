@@ -11,6 +11,9 @@ stm_control = config['stm_control']
 SAMPLES = pandas.read_csv(input_file, sep=None, engine='python',
                           encoding='utf8').set_index("SEQID", drop=False)
 
+def get_asm(wildcards):
+    return SAMPLES.loc[wildcards.sample]["ASM"]
+
 rule all:
     input:
         "SISTR_LIMS.xlsx",
@@ -27,13 +30,19 @@ rule test_controls:
     shell:
         """
         DIR=$(mktemp -d)
+        SISTR_DB=/opt/sistr_db
+        PY_VERSION=$(python --version | cut -d" " -f2 | cut -f1,2 -d\.)
+        PYTHON_EGG_CACHE=${{DIR}}/.python_egg_cache
+        DATA_DIR=${{PYTHON_EGG_CACHE}}/sistr_cmd-${{SISTR_VERSION}}-py${{PY_VERSION}}.egg-tmp/sistr/data
+        mkdir -p ${{DATA_DIR}}
+        cp -R ${{SISTR_DB}} ${{DATA_DIR}}
         sistr -i "{input.stm}" "9999-99999-1" -f csv -o {params.prefix} -T $DIR --qc --threads {threads}
         """
 
 rule run_sistr:
     input:
         "sistr_control.csv",
-        asm = "{sample}/contigs.fa"
+        asm = get_asm
 
     output:
         "{sample}/sistr.csv"
@@ -41,6 +50,12 @@ rule run_sistr:
     shell:
         """
         DIR=$(mktemp -d)
+        SISTR_DB=/opt/sistr_db
+        PY_VERSION=$(python --version | cut -d" " -f2 | cut -f1,2 -d\.)
+        PYTHON_EGG_CACHE=${{DIR}}/.python_egg_cache
+        DATA_DIR=${{PYTHON_EGG_CACHE}}/sistr_cmd-${{SISTR_VERSION}}-py${{PY_VERSION}}.egg-tmp/sistr/data
+        mkdir -p ${{DATA_DIR}}
+        cp -R ${{SISTR_DB}} ${{DATA_DIR}}
         sistr -i {input.asm:q} {wildcards.sample} -f csv -o {wildcards.sample}/sistr -T $DIR --qc --threads {threads}
         """
 
@@ -48,8 +63,8 @@ rule gather:
     input: expand("{sample}/sistr.csv", sample=SAMPLES.index)
     output: "sistr_concat.csv"
     run:
-        combined_tab = pd.concat(
-            [pd.read_csv(f, engine='python', sep=None) for f in input])
+        import pandas
+        combined_tab = pandas.concat([pandas.read_csv(f, engine='python', sep=None) for f in input])
         combined_tab.to_csv(output[0], index=False)
 
 rule process_results:
