@@ -11,8 +11,10 @@ stm_control = config['stm_control']
 SAMPLES = pandas.read_csv(input_file, sep=None, engine='python',
                           encoding='utf8').set_index("SEQID", drop=False)
 
+
 def get_asm(wildcards):
     return SAMPLES.loc[wildcards.sample]["ASM"]
+
 
 rule all:
     input:
@@ -37,6 +39,7 @@ rule test_controls:
         mkdir -p ${{DATA_DIR}}
         cp -R ${{SISTR_DB}} ${{DATA_DIR}}
         sistr -i "{input.stm}" "9999-99999-1" -f csv -o {params.prefix} -T $DIR --qc --threads {threads}
+        rm -rf ${{DIR}}
         """
 
 rule run_sistr:
@@ -57,6 +60,7 @@ rule run_sistr:
         mkdir -p ${{DATA_DIR}}
         cp -R ${{SISTR_DB}} ${{DATA_DIR}}
         sistr -i {input.asm:q} {wildcards.sample} -f csv -o {wildcards.sample}/sistr -T $DIR --qc --threads {threads}
+        rm -rf ${{DIR}}
         """
 
 rule gather:
@@ -64,7 +68,8 @@ rule gather:
     output: "sistr_concat.csv"
     run:
         import pandas
-        combined_tab = pandas.concat([pandas.read_csv(f, engine='python', sep=None) for f in input])
+        combined_tab = pandas.concat(
+            [pandas.read_csv(f, engine='python', sep=None) for f in input])
         combined_tab.to_csv(output[0], index=False)
 
 rule process_results:
