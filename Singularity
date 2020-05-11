@@ -38,7 +38,7 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   conda config --add channels r
   conda config --add channels bioconda
 
-  conda install sistr_cmd=${SISTR_VERSION}=${SISTR_BUILD}
+  #conda install sistr_cmd=${SISTR_VERSION}=${SISTR_BUILD}
   conda install datrie=0.7.1=py37h7b6447c_1
 
   pip install -U pip
@@ -51,6 +51,7 @@ export PATH=/opt/conda/bin:/opt/salmonella_typing:$PATH
   pip install pytest
   pip install jinja2
   pip install snakemake==${SNAKEMAKE_VERSION}
+  pip install sistr_cmd=${SISTR_VERSION}
 
   # installs to enable full LOD
   # conda install spades==3.12.0
