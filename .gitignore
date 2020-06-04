@@ -18,3 +18,5 @@ salmonella_typing/validation/limitOfDetection/templates/lod_report*
 lod_mm136.xlsx
 .vagrant
 *.simg
+.vscode
+*MAC194*
