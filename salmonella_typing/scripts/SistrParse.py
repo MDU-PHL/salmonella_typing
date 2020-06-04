@@ -1,6 +1,6 @@
-'''
+"""
 Process the SISTR output
-'''
+"""
 
 import inspect
 import pathlib
@@ -8,43 +8,65 @@ import pathlib
 import pandas as pd
 from cleo import Command, argument, option
 
-from scripts.SistrDF import SistrDF
-import scripts.rules
-import scripts.filters
+from .SistrDF import SistrDF
+from . import rules
+from . import filters
 
-rule_list = [(name, function) for name,function in inspect.getmembers(scripts.rules, inspect.isfunction) if name.startswith("rule_")]
-criteria = scripts.rules.criteria
-filter_list = [(name, function) for name,function in inspect.getmembers(scripts.filters, inspect.isfunction) if name.startswith("filter_")]
+rule_list = [
+    (name, function)
+    for name, function in inspect.getmembers(rules, inspect.isfunction)
+    if name.startswith("rule_")
+]
+criteria = rules.criteria
+filter_list = [
+    (name, function)
+    for name, function in inspect.getmembers(filters, inspect.isfunction)
+    if name.startswith("filter_")
+]
 
-class ParseSistrOuput(Command):
-    '''
+
+class ParseSistrOutput(Command):
+    """
     Parse the output from SISTR implementing the MMS136 rules. By default do not output the LIMS Excel.
-    '''
+    """
 
     name = "parse"
 
     arguments = [
-        argument("input_files", description="One or more SISTR output CSV results", required=True, is_list=True)
+        argument(
+            "input_files",
+            description="One or more SISTR output CSV results",
+            required=True,
+            is_list=True,
+        )
     ]
 
     options = [
         option("--lims", "-l", description="Whether to output a LIMs Excel Sheet"),
-        option("--prefix", "-p", description="Prefix of output file", value_required=True, default="sistr_out"),
-        option("--full", "-f", description="When outputting CSV, output all fields? If not, just summary.")
+        option(
+            "--prefix",
+            "-p",
+            description="Prefix of output file",
+            value_required=True,
+            default="sistr_out",
+        ),
+        option(
+            "--full",
+            "-f",
+            description="When outputting CSV, output all fields? If not, just summary.",
+        ),
     ]
 
     def handle(self):
-        '''
+        """
         Hangle the arguments
-        '''
+        """
         self.input_files = [pathlib.Path(f) for f in self.argument("input_files")]
         self.concat_results()
         self.create_output()
 
-
-
     def concat_results(self):
-        '''
+        """
         Join the output from multiple SISTR runs in to a single Pandas table
 
         Input:
@@ -62,13 +84,13 @@ class ParseSistrOuput(Command):
         A  B
         0  1  3
         1  5  6
-        '''
+        """
 
-        res = [pd.read_csv(fn, engine='python', sep=None) for fn in self.input_files]
+        res = [pd.read_csv(fn, engine="python", sep=None) for fn in self.input_files]
         self.tab = pd.concat(res, ignore_index=True)
 
     def create_output(self):
-        '''
+        """
         Run the methods we created to format the table for MMS136 output
 
         Input:
@@ -80,15 +102,17 @@ class ParseSistrOuput(Command):
         tab: pandas.DataFrame (transformed to MMS136)
 
         >>> create_output(rules.test_tab)
-        '''
+        """
         self.tab.mms136.gen_seqid()
         self.tab.mms136.gen_mduid()
         self.tab.mms136.apply_rules(rule_list, criteria)
         self.tab.mms136.apply_filters(filter_list)
         self.tab.mms136.call_status()
         if self.option("lims"):
-            outfile = pathlib.Path(pathlib.Path.cwd(), self.option("prefix") + '.xlsx')
+            outfile = pathlib.Path(pathlib.Path.cwd(), self.option("prefix") + ".xlsx")
             self.tab.mms136.output_lims(outname=outfile)
         else:
-            outfile = pathlib.Path(pathlib.Path.cwd(), self.option("prefix") + '.csv')
-            self.tab.mms136.output_csv(outname=outfile, summary=(not self.option("full")))
+            outfile = pathlib.Path(pathlib.Path.cwd(), self.option("prefix") + ".csv")
+            self.tab.mms136.output_csv(
+                outname=outfile, summary=(not self.option("full"))
+            )
