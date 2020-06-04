@@ -11,15 +11,24 @@ inv --list
 
 from invoke import task
 
+
 @task
 def clean(c):
     print("Removing container")
     c.sudo("rm -rf salmonella_typing.simg")
 
+
 @task(clean)
 def build_container(c):
     print("Building container")
-    c.sudo('singularity build salmonella_typing.simg Singularity')
+    c.sudo('singularity build -T salmonella_typing.simg Singularity')
+
+
+@task(build_container)
+def test_container(c):
+    print("Testing container...")
+    c('singularity test salmonella_typing.simg')
+
 
 @task(build_container)
 def run_validation(c):
