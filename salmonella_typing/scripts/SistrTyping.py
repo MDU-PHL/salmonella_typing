@@ -6,7 +6,7 @@ import pathlib
 import os
 import tempfile
 import contextlib
-
+import subprocess
 import pandas
 import jinja2
 import sh
@@ -43,7 +43,7 @@ class RunSistrWorkflow(Command):
         option("fields", "f", "If input file has no header, use this comma-separated list of values (e.g., -f 'ID,ASM').",
                default=None, value_required=True),
         option("resource_path", "r", "Path to Snakefile and config.yaml templates to use",
-               default=f"{pathlib.Path(__file__).parent.parent / 'templates'}", value_required=True),
+               default=f"{pathlib.Path(__file__).parent.parent }", value_required=True),
         option("control_path", "c", "Path to FASTA for positive controls to use",
                default=f"{pathlib.Path(__file__).parent.parent / 'data'}", value_required=True),
         option("threads", "t", "How many threads to give Snakemake",
@@ -63,7 +63,7 @@ class RunSistrWorkflow(Command):
             "mdu_qc"), self.option("fields"))
         self._write_input(workdir)
         self._write_workflow(resource_path, control_path, workdir)
-        self._run_workflow(workdir, self.option("threads"))
+        self._run_workflow(workdir, self.option("threads"), resource_path)
 
     def _exists(self, path):
         if not path.exists():
@@ -146,25 +146,26 @@ class RunSistrWorkflow(Command):
         stm_control = controls / "SentericaLT2.fasta"
 
         cfg_tmpl = jinja2.Template(pathlib.Path(
-            resources, 'config.yaml').read_text())
+            resources,'templates', 'config.yaml').read_text())
         cfg = workdir / 'config_sistr.yaml'
         cfg.write_text(cfg_tmpl.render(input_file='input_sistr.txt',
                                        stm_control=f"{stm_control.absolute()}"))
 
-        skf_tmpl = resources / 'Snakefile'
-        skf = workdir / 'Snakefile.sistr'
-        skf.write_text(skf_tmpl.read_text())
+        # skf_tmpl = resources / 'Snakefile'
+        # skf = workdir / 'Snakefile.sistr'
+        # skf.write_text(skf_tmpl.read_text())
 
         self.info(f"Successfully wrote workflow to {cfg.parent}")
 
-    def _run_workflow(self, workdir, threads):
+    def _run_workflow(self, workdir, threads, resources):
         '''
         Given all the elements have been put in place, run the workflow
         '''
-        os.chdir(workdir)
-        snakemake = sh.Command('snakemake')
-        runwf = snakemake("-s", "Snakefile.sistr", "-j", f"{threads}").wait()
-
+        # os.chdir(workdir)
+        # snakemake = sh.Command('snakemake')
+        # runwf = snakemake("-s", "Snakefile.sistr", "-j", f"{threads}").wait()
+        cmd = f"snakemake -s {pathlib.Path(resources, "Snakefile.smk")} -j {threads}"
+        subprocess.run(cmd, shell = True)
 
 class TestSistrWorkflow(Command):
     """
