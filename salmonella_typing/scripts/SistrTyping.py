@@ -32,8 +32,7 @@ class RunSistrWorkflow(Command):
     name = 'run'
 
     arguments = [
-        argument(
-            "input_file", description="Table of isolates and path to assembly", required=True)
+        argument("input_file", description="Table of isolates and path to assembly", required=True)
     ]
 
     options = [
@@ -161,10 +160,11 @@ class RunSistrWorkflow(Command):
         '''
         Given all the elements have been put in place, run the workflow
         '''
+    
         # os.chdir(workdir)
         # snakemake = sh.Command('snakemake')
         # runwf = snakemake("-s", "Snakefile.sistr", "-j", f"{threads}").wait()
-        cmd = f"snakemake -s {pathlib.Path(resources, "Snakefile.smk")} -j {threads}"
+        cmd = f"snakemake -s {pathlib.Path(resources, 'Snakefile.smk')} -j {threads} --verbose"
         subprocess.run(cmd, shell = True)
 
 class TestSistrWorkflow(Command):
@@ -188,9 +188,9 @@ class TestSistrWorkflow(Command):
         cfg.write_text(cfg_tmpl.render(input_file='input_sistr.txt',
                                        stm_control=f"{stm_control.absolute()}"))
 
-        skf_tmpl = resources / 'Snakefile'
-        skf = workdir / 'Snakefile.sistr'
-        skf.write_text(skf_tmpl.read_text())
+        # skf_tmpl = resources / 'Snakefile'
+        # skf = workdir / 'Snakefile.sistr'
+        # skf.write_text(skf_tmpl.read_text())
 
     def handle(self):
         resource_path = pathlib.Path(__file__).parent.parent / 'templates'

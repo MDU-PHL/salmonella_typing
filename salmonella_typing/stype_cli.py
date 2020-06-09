@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from .scripts.SistrTyping import (
+from scripts.SistrTyping import (
     RunSistrWorkflow,
     CleanSistrWorkflow,
     UnlockSistrWorkflow,
     TestSistrWorkflow,
 )
-from .scripts.SistrParse import ParseSistrOutput
-from .validation.limitOfDetection.LODExperimentWorkflow import LODCommand
+from scripts.SistrParse import ParseSistrOutput
+from validation.limitOfDetection.LODExperimentWorkflow import LODCommand
 from cleo import Application
 
 application = Application("stype_cli", "0.1.1")
