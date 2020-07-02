@@ -164,7 +164,7 @@ class RunSistrWorkflow(Command):
         # os.chdir(workdir)
         # snakemake = sh.Command('snakemake')
         # runwf = snakemake("-s", "Snakefile.sistr", "-j", f"{threads}").wait()
-        cmd = f"snakemake -s {pathlib.Path(resources, 'Snakefile.smk')} -j {threads} --verbose"
+        cmd = f"snakemake -s {pathlib.Path(resources, 'Snakefile.smk')} -j {threads} -d {workdir} --verbose"
         subprocess.run(cmd, shell = True)
 
 class TestSistrWorkflow(Command):

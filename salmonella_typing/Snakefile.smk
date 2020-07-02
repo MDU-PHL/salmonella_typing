@@ -9,8 +9,9 @@ import pandas
 configfile: 'config_sistr.yaml'
 input_file = config['input_file']
 stm_control = config['stm_control']
+# mdu_qc = config['is_mdu_qc']
 outfile = config.get("outfile", "salmonella_typing.csv")
-
+print(outfile)
 
 rule all:
     input: outfile
