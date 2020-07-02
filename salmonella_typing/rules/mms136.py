@@ -1,14 +1,16 @@
 
 import inspect
+import numpy as np
 import pathlib
 import pandas
-from . import rules
-from . import filters
+import rules
+import filters
+
 
 
 tab = pandas.read_csv(f"{snakemake.input}")
 
-output_file = f"{snakemake.output_file}"
+output_file = f"{snakemake.output}"
 
 rule_list = [
     (name, function)
@@ -16,6 +18,7 @@ rule_list = [
     if name.startswith("rule_")
 ]
 criteria = rules.criteria
+print(criteria)
 filter_list = [
     (name, function)
     for name, function in inspect.getmembers(filters, inspect.isfunction)
@@ -48,7 +51,7 @@ def filter_rules(tab, filter_list):
 def call_status(tab):
 
     PASS = tab['PASS']
-    REVIEW = tab.loc[:, self._obj.columns.str.startswith('REVIEW')].any(axis=1)
+    REVIEW = tab.loc[:, tab.columns.str.startswith('REVIEW')].any(axis=1)
     FAIL = tab['FAIL']
     EDGE = tab['EDGE']
     CONSISTENT = tab['CONSISTENT'] == 1 # True of False if this column == 1

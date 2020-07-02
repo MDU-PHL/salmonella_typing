@@ -108,8 +108,14 @@ def build_rules(*args, is_or=False):
     criteria: str (a string indicating how different groups of rules should be applied)
     '''
     rule_sets = [*args]
+    rules = []
     if len(rule_sets) > 1:
-        rules = ['(' + ' and '.join(rule_set) + ')' for rule_set in rule_sets]
+        for rule_set in rule_sets:
+            sep = ' and '
+            for rule in rule_set:
+                if 'edge' in rule:
+                    sep = ' or '
+            rules.append(f"({sep.join(rule_set)})")
         rules = ' or '.join(rules)
     else:
         bool_operator = ' and ' if not is_or else ' or '
