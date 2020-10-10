@@ -18,7 +18,7 @@ class RunSistrWorkflow(Command):
     name = 'run'
 
     arguments = [
-        argument("input_file", description="Table of isolates and path to assembly", required=True)
+        argument("input_file", description="Table of isolates and path to assembly")
     ]
 
     options = [
@@ -31,6 +31,7 @@ class RunSistrWorkflow(Command):
     ]
 
     def handle(self):
+        # print('Starting')
         input_file = pathlib.Path(self.argument("input_file"))
         self._exists(input_file)
         workdir = pathlib.Path(self.option("workdir"))
@@ -77,6 +78,7 @@ class RunSistrWorkflow(Command):
             names = header.split(',')
             header = None
         tab = pandas.read_csv(filename, sep=None, engine='python', encoding='utf8', header=header, names=names)
+        # print(tab)
         if is_mdu_qc:
             tab = tab[tab.apply(lambda x: ('Salmonella' in x.SPECIES_EXP and 'Salmonella' in x.SPECIES_OBS), axis=1)]
             tab['ASM'] = tab.apply(lambda x: pathlib.Path(f"{x.SEQID}/contigs.fa"), axis=1)
@@ -107,6 +109,7 @@ class RunSistrWorkflow(Command):
         -----
         workdir: a pathlib.Path object (path to the current working directory)
         '''
+        # print(tab)
         tab = self.tab[['SEQID', 'ASM']]
         input_file = pathlib.Path(workdir, 'input_sistr.txt')
         tab.to_csv(input_file, index=False)

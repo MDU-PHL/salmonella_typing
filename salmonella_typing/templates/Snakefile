@@ -44,10 +44,24 @@ rule run_sistr:
 rule gather_results:
     input:
         res=expand("{sample}/sistr.csv", sample=SAMPLES.index),
-        cont="sistr_control.csv"
+        # cont="sistr_control.csv"
+    output:
+        "sistr_concat.csv"
+    run:
+        import pandas
+        print(input)
+        combined_tab = pandas.concat([pandas.read_csv(f, engine='python', sep=None) for f in input])
+        combined_tab.to_csv(output[0], index=False)
+
+rule process_results:
+    input:
+        res = "sistr_concat.csv",
+        cont = "sistr_control.csv"
     output:
         "SISTR_LIMS.xlsx"
+    params:
+        prefix = "SISTR_LIMS"
     shell:
         '''
-        cat {input.cont} {input.res} > {output}
+        stype_cli.py parse -l -p {params.prefix} {input.cont} {input.res}
         '''

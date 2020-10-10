@@ -8,7 +8,7 @@ import re
 import pandas as pd
 import numpy as np
 
-MDUIDREG = re.compile(r'(?P<id>[0-9]{4}-[0-9]{5})-?(?P<itemcode>.{1,2})?')
+MDUIDREG = re.compile(r'(?P<id>[0-9]{4}-[0-9]{5,6})-?(?P<itemcode>.{1,2})?')
 
 @pd.api.extensions.register_dataframe_accessor("mms136")
 class SistrDF(object):
@@ -34,6 +34,7 @@ class SistrDF(object):
         Generate two columns: MDU ID and item code (if exists) using the seqid column
         '''
         new_tab = self._obj.apply(self._split_id, axis=1, result_type='expand')
+
         self._obj.insert(0, 'ITEMCODE', new_tab.ITEMCODE)
         self._obj.insert(0, 'ID', new_tab.ID)
     
@@ -144,6 +145,12 @@ class SistrDF(object):
         Given a row with SEQID column, return ID and ITEMCODE columns
         '''
         m = MDUIDREG.match(row.SEQID)
-        mduid = m.group('id')
-        itemcode = m.group('itemcode') if m.group('itemcode') else ''
+        print(row.SEQID)
+        if m:
+            mduid = m.group('id')
+            itemcode = m.group('itemcode') if m.group('itemcode') else ''
+        else:
+            mduid = row.SEQID
+            itemcode = ''
         return pd.Series([mduid, itemcode], index=['ID', 'ITEMCODE'])
+        

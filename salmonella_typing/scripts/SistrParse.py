@@ -65,7 +65,9 @@ class ParseSistrOuput(Command):
         '''
 
         res = [pd.read_csv(fn, engine='python', sep=None) for fn in self.input_files]
+        
         self.tab = pd.concat(res, ignore_index=True)
+        print(self.tab.columns)
 
     def create_output(self):
         '''
