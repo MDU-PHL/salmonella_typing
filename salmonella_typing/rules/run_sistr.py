@@ -18,4 +18,5 @@ genome_name = f"{snakemake.params.genome_name}"
 out = f"{snakemake.output.out}"
 tempdir = tempfile.TemporaryDirectory()
 cmd = f"sistr -i {contigs} {genome_name} -f csv -o {out} --tmp-dir {tempdir.name} -m "
+print(cmd)
 subprocess.run(cmd, shell = True)

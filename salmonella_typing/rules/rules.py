@@ -338,7 +338,7 @@ def rule_edge_case_tm_abony(tab):
     This happens when:
     cgmlst_genome_match == '2015-SEQ-0411'
     '''
-    query = ' and '.join(['cgmlst_genome_match=="2015-SEQ-0411"', 'h1=="i"', 'h2=="1,2"', 'o_antigen=="1,3,19"','serovar_antigen=="Typhimurium|Lagos"','serovar=="Typhimurium|Lagos"', 'serovar_cgmlst=="Abony"'])
+    query = ' and '.join(['cgmlst_genome_match=="2015-SEQ-0411"', 'h1=="i"', 'h2=="1,2"', 'o_antigen=="-"','serovar_antigen=="Typhimurium|Lagos"','serovar=="Typhimurium|Lagos"', 'serovar_cgmlst=="Abony"'])
     mask = tab.eval(query)
     mask.name = 'rule_edgecase_tm_abony'
     return mask

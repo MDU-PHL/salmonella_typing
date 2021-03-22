@@ -36,5 +36,8 @@ rule run_sistr:
         out="{sample}/sistr.csv"
     params:
         genome_name="{sample}"
-    script: "run_sistr.py"
+    shell: 
+        """
+        sistr -i {input.contigs} {params.genome_name} -f csv -o {output.out} -m
+        """
 
