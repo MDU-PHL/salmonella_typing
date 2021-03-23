@@ -30,6 +30,41 @@ To perform _Salmonella enterica_ serotyping we use the tool `sistr` [[1](#yoshid
 1. It uses _BLAST_ to identify the presence of annotated O- and H- antigen sequences. As such, it comes with curated multiFASTA files for the _fliC_, _fliB_, and _wzx_ and _wzy_ genes.
 2. It has a cgMLST scheme with 330 loci, and a database of 52 790 genomes (mostly comprising subspecies I) that have been typed at these loci and annotated with a serotype. It uses _BLAST_ to genotype the input assembly across as many of the 330 loci, and then calculates the pairwise distance of the input isolate to the database of curated genomes.
 
+## Running salmonella_serotyping
+
+`salmonella_serotyping` is most commonly run in the context of MDU QC, where isolates that have been identified as Salmonella species by kmer-id are collected and the results of sistr output filtered and saved as csv and a spreadsheet ready for LIMS upload. However, it can also be run outside of MDU QC.
+
+If running outside of MDU QC a comma separated file needs to be supplied with headers ID,ASM. Column 1 is the ID of the sample and will be used throughout the typing and collation, and ASM is the path to an assembly. You may also supply a prefix, which will be used to name output files
+
+```
+salmonella_typing run --prefix some_name input.csv
+```
+
+You can also run `salmonella_typing` outside of an MDU QC run, however, you will need the `distribution_table.txt` and have the assemblies already in the appropriate structure
+
+```working_dir
+        |_____
+                QC
+                 |_____
+                        Isolate_name
+                            |___________contigs.fa
+```
+You can then run (in the working_dir)
+
+```
+salmonella_typing run -m -p <RUNID> distribute_table.txt
+```
+
+## Output 
+
+| File | Contents |
+| :---: |:---:|
+| `sample_directory/contigs.fa` | Assembly file used as input to salmonella_typing |
+| `sample_directory/sistr.csv` | raw output of `sistr` |
+| `sistr.csv` | contains the raw output of each sample collated together |
+| `sistr_filtered.csv` | `sistr` output that has been collated and filtered based on MDU business logic |
+| `sistr.xlsx` | a spreadsheet ready for upload into MDU LIMS (only output if the `-m` flag is used |
+
 ## References
 
 [<a name='yoshida'>1</a>] Yoshida, C. E., Kruczkiewicz, P., Laing, C. R., Lingohr, E. J., Gannon, V. P. J., Nash, J. H. E., & Taboada, E. N. (2016). The Salmonella _In Silico_ Typing Resource (SISTR): An Open Web-Accessible Tool for Rapidly Typing and Subtyping Draft Salmonella Genome Assemblies. PloS One, 11(1), e0147101.
