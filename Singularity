@@ -44,7 +44,6 @@ sistrdb.tar.gz
   cd / && tar xvzf sistrdb.tar.gz && rm sistrdb.tar.gz
 
   echo "Sorting some env variables..."
-  echo "export DB_UPDATE=\"All DBs updated on $(stat -c %y /opt/sistr_db/sistr.msh)\"" >> $SINGULARITY_ENVIRONMENT
   chmod 755 /opt/salmonella_typing/stype_cli.py
 
   echo "Done"
