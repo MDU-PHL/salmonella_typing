@@ -68,14 +68,22 @@ def call_status(tab):
 
     return tab
 def assign_itemcode(mduid):
+    m = MDUIDREG.match(mduid)
+    itemcode = m.group('itemcode') if m.group('itemcode') else ''
+    return itemcode
 
-    
+def assign_mduid(mduid):
+    m = MDUIDREG.match(mduid)
+    mduid = m.group('id')
+    return mduid
 
 def make_spreadsheet(tab, prefix):
-    tab = tab.rename(columns = {'genome': 'ID'})
+    tab = tab.rename(columns = {'genome': 'SEQID'})
+    tab['ID'] = tab['SEQID'].apply(lambda x:assign_mduid(x), axis = 1)
+    tab['ITEMCODE'] = tab['SEQID'].apply(lambda x:assign_itemcode(x), axis = 1)
     cols = ["ID","ITEMCODE","SEQID","cgmlst_subspecies","cgmlst_matching_alleles","serovar_cgmlst","o_antigen","h1","h2","serogroup","serovar_antigen","serovar-original","serovar","STATUS"]
-    mms136 = tab[tab['STATUS'] == 'PASS']
-    review = tab[~tab['STATUS'].isin(['PASS', 'FAIL'])]
+    mms136 = tab[tab['STATUS'] == 'PASS'][cols]
+    review = tab[~tab['STATUS'].isin(['PASS', 'FAIL'])][cols]
 
     writer = pandas.ExcelWriter(f'{prefix}_sistr.xlsx')
     mms136.to_excel(writer, sheet_name = "MMS136")
