@@ -3,9 +3,8 @@
 
 from scripts.SistrTyping import (
     RunSistrWorkflow,
-    CleanSistrWorkflow,
-    UnlockSistrWorkflow,
-    TestSistrWorkflow,
+    CleanSistrWorkflow
+    
 )
 from scripts.SistrParse import ParseSistrOutput
 from validation.limitOfDetection.LODExperimentWorkflow import LODCommand
@@ -13,10 +12,7 @@ from cleo import Application
 
 application = Application("stype_cli", "0.1.1")
 application.add(RunSistrWorkflow())
-application.add(TestSistrWorkflow())
 application.add(CleanSistrWorkflow())
-application.add(UnlockSistrWorkflow())
-application.add(ParseSistrOutput())
 # application.add(LODCommand())
 
 if __name__ == "__main__":

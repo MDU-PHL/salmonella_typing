@@ -37,6 +37,7 @@ class RunSistrWorkflow(Command):
 
     options = [
         option("mdu_qc", "m", "If set, assume input is MDU QC input"),
+        option("prefix", "p", "Prefix for naming output file.", default = "sistr", value_required = True),
         option("workdir", "w", "Change working directory",
                default=f"{pathlib.Path.cwd().absolute()}", value_required=True),
         option("fields", "f", "If input file has no header, use this comma-separated list of values (e.g., -f 'ID,ASM').",
@@ -51,27 +52,59 @@ class RunSistrWorkflow(Command):
 
     def handle(self):
         input_file = pathlib.Path(self.argument("input_file"))
+        
+        if self.option("mdu_qc"):
+            # input_file = pathlib.Path("distribute_table.txt")
+            path_to_assemblies = "QC/"
+            qc = 'true'
+            workdir = "QC/"
+            mms136 = 'true'
+        else:
+            
+            workdir = self.option("workdir")
+            path_to_assemblies = workdir
+            qc = 'false'
+            mms136 = 'false'
+            self._read_input(input_file, self.option("fields"))
+        
         self._exists(input_file)
-        workdir = pathlib.Path(self.option("workdir"))
-        self._exists(workdir)
+        self._exists(pathlib.Path(workdir))
+
         resource_path = pathlib.Path(self.option('resource_path'))
         self._exists(resource_path)
         control_path = pathlib.Path(self.option('control_path'))
+        prefix = self.option('prefix')
         self._exists(control_path)
-        self._read_input(input_file, self.option(
-            "mdu_qc"), self.option("fields"))
-        self._write_input(workdir)
-        self._write_workflow(resource_path, control_path, workdir)
+        self._setup_working_dir(input_file, workdir, self.option("mdu_qc"), control_path)
+        self._write_workflow(prefix,path_to_assemblies, qc, mms136,resource_path, workdir)
         self._run_workflow(workdir, self.option("threads"), resource_path)
-
+        
     def _exists(self, path):
         if not path.exists():
             self.error(f"Could not find {path.name}")
             raise FileNotFoundError(f"{path.name}")
-        else:
-            self.info(f"Found {path.name}.")
+        # else:
+        #     self.info(f"Found {path.name}.")
+    def _setup_working_dir(self, input_file, workdir, is_mdu_qc, positive):
+        '''
+        open input file and copy assemblies to sample directories
+        '''
+        poscmd = f"mkdir -p {workdir}/9999-99999-1 && cp {positive}/SentericaLT2.fasta  {workdir}/9999-99999-1/contigs.fa"
+        subprocess.run(poscmd, shell = True)
+        if not is_mdu_qc:
+            self.comment("Setting up directory.")
+            for row in self.tab.iterrows():
+                seq = row[1]['SEQID']
+                ctgs = row[1]['ASM']
+                self._exists(pathlib.Path(ctgs))
+                tg_dir = pathlib.Path(workdir, seq)
+                if not tg_dir.exists():
+                    tg_dir.mkdir()
+                
+                cmd = f"cp -n {ctgs} {tg_dir}/contigs.fa"
+                subprocess.run(cmd, shell = True)
 
-    def _read_input(self, filename, is_mdu_qc, fields):
+    def _read_input(self, filename, fields):
         '''
         Use pandas to read the table, if `is_mdu_qc` filter out samples that 
         are not Salmonella
@@ -96,59 +129,45 @@ class RunSistrWorkflow(Command):
             # it with the command line
             names = header.split(',')
             header = None
+        
         tab = pandas.read_csv(filename, sep=None, engine='python',
                               encoding='utf8', header=header, names=names)
-        if is_mdu_qc:
-            tab = tab[tab.apply(lambda x: (
-                'Salmonella' in x.SPECIES_EXP and 'Salmonella' in x.SPECIES_OBS), axis=1)]
-            tab['ASM'] = tab.apply(lambda x: pathlib.Path(
-                f"{x.SEQID}/contigs.fa"), axis=1)
+
+        if 'ASM' not in tab.columns:
+            self.error(
+                f"{filename} does not include a field called ASM with the path to the assembly.")
+            table = self.table()
+            table.headers('ID', 'ASM')
+            table.set_rows([
+                ['2099-99999', '/path/to/asm/contig.fa'],
+                ['2099-99998-1', '/path/to/asm/contig.fa']
+            ])
+            self.error("Here is an example minimal file:")
+            table.render()
+            raise AttributeError(f"Did not find ASM field in {filename}")
         else:
-            if 'ASM' not in tab.columns:
-                self.error(
-                    f"{filename} does not include a field called ASM with the path to the assembly.")
-                table = self.table()
-                table.headers('ID', 'ASM')
-                table.set_rows([
-                    ['2099-99999', '/path/to/asm/contig.fa'],
-                    ['2099-99998-1', '/path/to/asm/contig.fa']
-                ])
-                self.error("Here is an example minimal file:")
-                table.render()
-                raise AttributeError(f"Did not find ASM field in {filename}")
-            else:
-                self.info("Found ASM field... Proceeding with analysis.")
-                if 'SEQID' not in tab.columns:
-                    self.comment(f"Assuming {tab.columns[0]} is SEQID")
-                    tab = tab.rename(columns={tab.columns[0]: 'SEQID'})
+            self.info("Found ASM field... Proceeding with analysis.")
+            if 'SEQID' not in tab.columns:
+                self.comment(f"Assuming {tab.columns[0]} is SEQID")
+                tab = tab.rename(columns={tab.columns[0]: 'SEQID'})
         self.tab = tab
 
-    def _write_input(self, workdir):
-        '''
-        Write the input file for use with Snakefile to generate the sistr results
-
-        Input:
-        -----
-        workdir: a pathlib.Path object (path to the current working directory)
-        '''
-        tab = self.tab[['SEQID', 'ASM']]
-        input_file = pathlib.Path(workdir, 'input_sistr.txt')
-        tab.to_csv(input_file, index=False)
-        self.info(f"Succesfully wrote sistr_input.txt to {input_file.parent}")
-
-    def _write_workflow(self, resources, controls, workdir):
+    def _write_workflow(self, prefix,path_to_assemblies, qc, mms136,resources, workdir):
         '''
         Load Snakefile file and config.yaml templates
         '''
-        self.info("Loading Snakefile and config.yaml...")
-
-        stm_control = controls / "SentericaLT2.fasta"
-
+        self.info("Setting up configuration.")        
+        cfg_dict = {
+            'prefix': prefix,
+            'path_to_assemblies': path_to_assemblies,
+            'workdir': workdir,
+            'qc': qc,
+            'mms136': mms136
+        }
         cfg_tmpl = jinja2.Template(pathlib.Path(
-            resources,'templates', 'config.yaml').read_text())
-        cfg = workdir / 'config_sistr.yaml'
-        cfg.write_text(cfg_tmpl.render(input_file='input_sistr.txt',
-                                       stm_control=f"{stm_control.absolute()}"))
+            resources,'templates', 'nextflow.config.j2').read_text())
+        cfg = pathlib.Path('nextflow.config')
+        cfg.write_text(cfg_tmpl.render(cfg_dict))
 
         # skf_tmpl = resources / 'Snakefile'
         # skf = workdir / 'Snakefile.sistr'
@@ -164,45 +183,18 @@ class RunSistrWorkflow(Command):
         # os.chdir(workdir)
         # snakemake = sh.Command('snakemake')
         # runwf = snakemake("-s", "Snakefile.sistr", "-j", f"{threads}").wait()
-        cmd = f"snakemake -s {pathlib.Path(resources, 'Snakefile.smk')} -j {threads} -d {workdir} --verbose"
-        subprocess.run(cmd, shell = True)
+        cmd = f"nextflow {pathlib.Path(resources, 'main.nf')} -resume"
+        wkf = subprocess.run(cmd, shell = True)
+        while True:
+            if wkf.stdout != None:
+                line = wkf.stdout.readline().strip()
+                if not line:
+                    break
+            line = ''
+            break
+            self.info(f"{line}")
+        
 
-class TestSistrWorkflow(Command):
-    """
-    Testt if workflow works.
-    """
-
-    name = "test"
-
-    def _write_workflow(self, resources, controls, workdir):
-        '''
-        Load Snakefile file and config.yaml templates
-        '''
-        self.info("Loading Snakefile and config.yaml...")
-
-        stm_control = controls / "SentericaLT2.fasta"
-
-        cfg_tmpl = jinja2.Template(pathlib.Path(
-            resources, 'config.yaml').read_text())
-        cfg = workdir / 'config_sistr.yaml'
-        cfg.write_text(cfg_tmpl.render(input_file='input_sistr.txt',
-                                       stm_control=f"{stm_control.absolute()}"))
-
-        # skf_tmpl = resources / 'Snakefile'
-        # skf = workdir / 'Snakefile.sistr'
-        # skf.write_text(skf_tmpl.read_text())
-
-    def handle(self):
-        resource_path = pathlib.Path(__file__).parent.parent / 'templates'
-        control_path = pathlib.Path(__file__).parent.parent / 'data'
-        with tempfile.TemporaryDirectory() as workdir:
-            workdir = pathlib.Path(workdir)
-            self._write_workflow(resource_path, control_path, workdir)
-            os.chdir(workdir)
-            print(os.listdir(workdir))
-            print(os.getcwd())
-            snakemake = sh.Command('snakemake')
-            runsk = snakemake("-s", "Snakefile.sistr", "test_controls")
 
 
 class CleanSistrWorkflow(Command):
@@ -212,48 +204,19 @@ class CleanSistrWorkflow(Command):
 
     name = "clean"
 
-    options = [
-        option("snakefile", "s", "Snakefile used for run",
-               default='Snakefile.sistr', value_required=True),
-        option("config", "c", "Config file to remove",
-               default="config_sistr.yaml", value_required=True),
-        option("input_file", "i", "Input file to remove",
-               default="input_sistr.txt", value_required=True),
-        option(
-            "all", "a", "Delete all files including Snakefile, config, and input files?")
-    ]
+    # options = [
+    #     option(
+    #         "all", "a", "Delete all files including .nextflow.log, config, cached results and input files?")
+    # ]
 
     def handle(self):
         self.comment("Removing all outputs from SISTR workflow.")
-        snakemake = sh.Command('snakemake')
-        runsk = snakemake("-s", self.option('snakefile'),
-                          "--delete-all-output")
-        if self.option("all"):
-            self._unlink(self.option("snakefile"))
-            self._unlink(self.option("config"))
-            self._unlink(self.option("input_file"))
+        
+        self._remove()
 
-    def _unlink(self, filename):
-        path = pathlib.Path(filename)
-        if path.exists():
-            self.comment(f"Removing {path}")
-            path.unlink()
-        else:
-            self.comment(f"Did not find {apth}")
-
-
-class UnlockSistrWorkflow(Command):
-    """
-    If workflow gets interrupted for some reason, unlock it.
-    """
-
-    name = "unlock"
-
-    options = [
-        option("snakefile", "s", "Snakefile used for run",
-               default='Snakefile.sistr', value_required=True),
-    ]
-
-    def handle(self):
-        snakemake = sh.Command('snakemake')
-        runsk = snakemake("-s", self.option('snakefile'), "--unlock")
+    def _remove(self):
+        to_remove = ['.nextflow.log*', 'nextflow.config', 'work']
+        for t in to_remove:
+            cmd = f"rm -rf {t}"
+            self.info(cmd)
+            subprocess.run(cmd, shell = True)

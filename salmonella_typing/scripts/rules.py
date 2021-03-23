@@ -123,7 +123,7 @@ criteria = {
     'FAIL':  build_rules(fail_rules, is_or=True),
     'EDGE': build_rules(edge_case_review_rules, is_or=True)
 }
-print(criteria)
+# print(criteria)
 ### RULES ###
 
 def rule_must_be_subsp_enterica(tab):

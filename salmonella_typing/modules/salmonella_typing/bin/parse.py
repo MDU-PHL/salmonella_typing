@@ -6,12 +6,15 @@ import pandas
 import rules
 import filters
 import sys
+import re
 
 MDUIDREG = re.compile(r'(?P<id>[0-9]{4}-[0-9]{5,6})-?(?P<itemcode>.{1,2})?')
 
 tab = pandas.read_csv(sys.argv[1])
 
-output_prefix = sys.argv[2]
+out_prefix = sys.argv[2]
+
+mms136 = True if f"{sys.argv[3]}" == 'true' else False
 
 rule_list = [
     (name, function)
@@ -78,17 +81,18 @@ def assign_mduid(mduid):
     return mduid
 
 def make_spreadsheet(tab, prefix):
+    # print('Generating spreadsheet')
     tab = tab.rename(columns = {'genome': 'SEQID'})
-    tab['ID'] = tab['SEQID'].apply(lambda x:assign_mduid(x), axis = 1)
-    tab['ITEMCODE'] = tab['SEQID'].apply(lambda x:assign_itemcode(x), axis = 1)
+    tab['ID'] = tab['SEQID'].apply(lambda x:assign_mduid(x))
+    tab['ITEMCODE'] = tab['SEQID'].apply(lambda x:assign_itemcode(x))
     cols = ["ID","ITEMCODE","SEQID","cgmlst_subspecies","cgmlst_matching_alleles","serovar_cgmlst","o_antigen","h1","h2","serogroup","serovar_antigen","serovar-original","serovar","STATUS"]
     mms136 = tab[tab['STATUS'] == 'PASS'][cols]
     review = tab[~tab['STATUS'].isin(['PASS', 'FAIL'])][cols]
 
     writer = pandas.ExcelWriter(f'{prefix}_sistr.xlsx')
-    mms136.to_excel(writer, sheet_name = "MMS136")
-    review.to_excel(writer, sheet_name = "REVIEW")
-    tab.to_excel(writer, sheet_name = "ALL")
+    mms136.to_excel(writer, sheet_name = "MMS136", index = False)
+    review.to_excel(writer, sheet_name = "REVIEW", index = False)
+    tab.to_excel(writer, sheet_name = "ALL", index = False)
     writer.close()
 
 # apply rules
@@ -101,5 +105,6 @@ tab = filter_rules(tab = tab, filter_list = filter_list)
 tab = call_status(tab)
 
 # save table to output
-# tab.to_csv(output_file, index = False)
-make_spreadsheet(tab, output_prefix)
+tab.to_csv(f'{out_prefix}_filtered.csv', index = False)
+if mms136 == True:
+    make_spreadsheet(tab, out_prefix)

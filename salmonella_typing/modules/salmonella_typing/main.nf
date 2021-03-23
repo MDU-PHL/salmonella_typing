@@ -2,8 +2,7 @@
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 module_dir = moduleDir + "/bin"
-// println moduleDir
-// println module_dir
+
 params.options = [:]
 def options    = initOptions(params.options)
 
@@ -13,15 +12,8 @@ process SISTR {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:meta.id, publish_id:meta.id) }
+    cache 'lenient' 
     
-       
-    // conda (params.enable_conda ? 'bioconda::sistr_cmd=1.0.2' : null)
-    // if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-    //     container 'https://depot.galaxyproject.org/singularity/fastp:0.20.1--h8b12597_0'
-    // } else {
-    //     container 'quay.io/biocontainers/fastp:0.20.1--h8b12597_0'
-    // }
-
     input:
     tuple val(meta), path(contigs)
 
@@ -30,7 +22,7 @@ process SISTR {
     path '*.version.txt'                  , emit: version
 
     script:
-    // Added soft-links to original fastqs for consistent naming in MultiQC
+    
     def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
@@ -45,27 +37,18 @@ process SISTR {
 
 // common process to collate the sistr output
 process COLLATE_SISTR {
-    // tag "$meta.id"
-    label 'process_medium'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:params.outdir, publish_id:'sistr_collate') }
     
-       
-    // conda (params.enable_conda ? 'bioconda::sistr_cmd=1.1.1' : null)
-    // if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-    //     container 'https://depot.galaxyproject.org/singularity/fastp:0.20.1--h8b12597_0'
-    // } else {
-    //     container 'quay.io/biocontainers/fastp:0.20.1--h8b12597_0'
-    // }
-
+    label 'process_medium'
+    publishDir ".",
+        mode: params.publish_dir_mode
+        
+    cache 'lenient'
     input:
     val(sistr_files) 
 
     output:
     path 'sistr.csv', emit: sistr_collated
-    // path '*.version.txt'                  , emit: version
-
+    
     script:
     
     """
@@ -75,31 +58,24 @@ process COLLATE_SISTR {
 }
 
 process FILTER_SISTR {
-     // tag "$meta.id"
-    label 'process_medium'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:params.outdir, publish_id:'sistr_filtered') }
     
-       
-    // conda (params.enable_conda ? 'bioconda::sistr_cmd=1.1.1' : null)
-    // if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-    //     container 'https://depot.galaxyproject.org/singularity/fastp:0.20.1--h8b12597_0'
-    // } else {
-    //     container 'quay.io/biocontainers/fastp:0.20.1--h8b12597_0'
-    // }
-
+    label 'process_medium'
+    publishDir ".",
+        mode: params.publish_dir_mode
+        
+    cache 'lenient'
     input:
     path 'sistr.csv' 
 
     output:
-    path "${params.prefix}_sistr.xlsx", emit: sistr_filtered
-    // path '*.version.txt'                  , emit: version
+    path("${params.prefix}_filtered.csv"), emit: sistr_filtered
+    path("${params.prefix}_sistr.xlsx") optional true
+    
 
     script:
     
     """
-    ${module_dir}/mms136.py sistr.csv $params.prefix
+    ${module_dir}/parse.py sistr.csv $params.prefix $params.mms136
     """
     
 }
