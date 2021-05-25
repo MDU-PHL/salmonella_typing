@@ -1,6 +1,6 @@
 import pathlib, argparse, sys, os, logging
 
-from styping.TypingSetup import SetupTyping
+from styping.Typing import SetupTyping, RunTyping
 # from abritamr.RunFinder import RunFinder
 # from abritamr.Collate import Collate, MduCollate
 from styping.version import __version__
@@ -13,10 +13,10 @@ abritamr is designed to implement AMRFinder and parse the results compatible for
 def run_pipeline(args):
     P = SetupTyping(args)
     input_data = P.setup()
-    A = RunFinder(input_data)
-    amr_data = A.run()
-    C = Collate(amr_data)
-    collated_data = C.run()
+    T = RunFinder(input_data)
+    # amr_data = A.run()
+    # C = Collate(amr_data)
+    # collated_data = C.run()
     
 
 # def mdu(args):
@@ -46,8 +46,7 @@ def set_parsers():
         default="abritamr",
         help="If running on a single sample, please provide a prefix for output directory",
     )
-    # tmp_dir=\$(mktemp -d -t sistr-XXXXXXXXXX)
-    # sistr -i contigs.fa ${prefix} -f csv -o sistr.csv --tmp-dir \$tmp_dir -m 
+    
     parser_sub_run.add_argument(
         "--jobs", "-j", default=16, help="Number of AMR finder jobs to run in parallel."
     )

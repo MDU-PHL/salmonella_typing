@@ -5,7 +5,7 @@ from styping.CustomLog import CustomFormatter
 
 class SetupTyping(object):
     """
-    A base class for setting up abritamr return a valid input object for subsequent steps
+    A class for setting up salmonella typing
     """
     def __init__(self, args):
         
@@ -22,6 +22,10 @@ class SetupTyping(object):
         self.logger.addHandler(ch) 
         self.logger.addHandler(fh)
 
+        self.jobs = args.jobs 
+        self.contigs = args.contigs
+        self.prefix = args.prefix
+
         
     def file_present(self, name):
         """
@@ -37,33 +41,6 @@ class SetupTyping(object):
         else:
             return False
 
-class SetupAMR(Setup):
-
-    """
-    setup amr inputs for amrfinder run
-    """
-    def __init__(self, args):
-        
-
-        # for amr
-        self.species_list = ['Acinetobacter_baumannii', "Campylobacter", "Enterococcus_faecalis", "Enterococcus_faecium", "Escherichia", "Klebsiella", "Salmonella", "Staphylococcus_aureus", "Staphylococcus_pseudintermedius", "Streptococcus_agalactiae", "Streptococcus_pneumoniae", "Streptococcus_pyogenes", "Vibrio_cholerae"]
-        
-        self.logger =logging.getLogger(__name__) 
-        self.logger.setLevel(logging.INFO)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(CustomFormatter())
-        fh = logging.FileHandler('abritamr.log')
-        fh.setLevel(logging.INFO)
-        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
-        fh.setFormatter(formatter)
-        self.logger.addHandler(ch) 
-        self.logger.addHandler(fh)
-
-        
-        self.jobs = args.jobs # number of amrfinderplus to run at a time
-        self.contigs = args.contigs
-        self.prefix = args.prefix
         
 
     def _check_prefix(self):
@@ -127,10 +104,109 @@ class SetupAMR(Setup):
         # check that prefix is present (if needed)
         if running_type == 'assembly':
             self._check_prefix()
-        Data = collections.namedtuple('Data', ['run_type', 'input', 'prefix', 'jobs', 'organism'])
+        Data = collections.namedtuple('Data', ['run_type', 'input', 'prefix', 'jobs'])
         input_data = Data(running_type, self.contigs, self.prefix, self.jobs, self.species)
         
         return input_data
+
+
+class RunTyping:
+    """
+    A base class for setting up abritamr return a valid input object for subsequent steps
+    """
+    def __init__(self, args):
+        # tmp_dir=\$(mktemp -d -t sistr-XXXXXXXXXX)
+    # sistr -i contigs.fa ${prefix} -f csv -o sistr.csv --tmp-dir \$tmp_dir -m 
+
+        self.logger =logging.getLogger(__name__) 
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(CustomFormatter())
+        fh = logging.FileHandler('styping.log')
+        fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
+        fh.setFormatter(formatter)
+        self.logger.addHandler(ch) 
+        self.logger.addHandler(fh)
+
+        self.run_type = args.run_type
+        self.input = args.input
+        self.prefix = args.prefix
+        self.jobs = args.jobs
+
+    def _batch_cmd(self):
+            """
+            generate cmd with parallel
+            """
+            cmd = f"parallel -j {self.jobs} --colsep '\\t' '$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m' :::: {self.input}"
+
+        return cmd
+    
+    def _single_cmd(self):
+        """
+        generate a single amrfinder command
+        """
+        cmd = f"$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {self.prefix} && sistr -i {self.input} {self.prefix} -f csv -o {self.prefix}/sistr.csv --tmp-dir $tmp_dir -m"
+        
+        return cmd
+    
+    def _generate_cmd(self):
+        """
+        Generate a command to run sistr
+        """
+        cmd = self._batch_cmd() if self.run_type == 'batch' else self._single_cmd()
+        return cmd
+        
+    def _run_cmd(self, cmd):
+        """
+        Use subprocess to run the command for sisrs
+        """
+
+        p = subprocess.run(cmd, shell = True, capture_output = True, encoding = "utf-8")
+        if p.returncode == 0:
+            self.logger.info(f"sistr completed successfully. Will now move on to collation.")
+            return True
+        else:
+            self.logger.critical(f"There appears to have been a problem with running sistr. The following error has been reported : \n {p.stderr}")
+
+    def _check_output_file(self, path):
+        """
+        check that sistr outputs are present
+        """
+        if not pathlib.Path(path).exists():
+            self.logger.critical(f"The sistr output : {path} is missing. Something has gone wrong with sistr. Please check all inputs and try again.")
+            raise SystemExit
+        else:
+            return True
+
+    def _check_outputs(self):
+        """
+        use inputs to check if files made
+        """
+        if self.run_type != 'batch':
+            self._check_output_file(f"{self.prefix}/sistr.csv")
+        else:
+            tab = pandas.read_csv(self.input, sep = '\t', header = None)
+            for row in tab.iterrows():
+                self._check_output_file(f"{row[1][0]}/sistr.csv")
+        return True
+
+    def run(self):
+        """
+        run sistr
+        """
+    
+        self.logger.info(f"All check complete now running sistr")
+        cmd = self._generate_cmd()
+        self.logger.info(f"You are running sistr in {self.run_type} mode. Now executing : {cmd}")
+        self._run_cmd(cmd)
+        self._check_outputs()
+
+        Data = collections.namedtuple('Data', ['run_type', 'input', 'prefix'])
+        sistr_data = Data(self.run_type, self.input, self.prefix)
+
+        return sistr_data
 
 
 # class SetupMDU(Setup):
