@@ -70,6 +70,7 @@ def call_status(tab):
     tab['STATUS'] = np.select(conditions, choices, default='REVIEW, INCONSISTENT')
 
     return tab
+# mdu specific functions... sub class?
 def assign_itemcode(mduid):
     m = MDUIDREG.match(mduid)
     itemcode = m.group('itemcode') if m.group('itemcode') else ''
@@ -95,6 +96,7 @@ def make_spreadsheet(tab, prefix):
     tab.to_excel(writer, sheet_name = "ALL", index = False)
     writer.close()
 
+# function to run
 # apply rules
 tab = apply_rules(tab = tab, rule_list=rule_list, criteria=criteria)
 

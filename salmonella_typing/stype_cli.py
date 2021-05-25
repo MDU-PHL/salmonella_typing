@@ -6,11 +6,11 @@ from scripts.SistrTyping import (
     CleanSistrWorkflow
     
 )
-from scripts.SistrParse import ParseSistrOutput
-from validation.limitOfDetection.LODExperimentWorkflow import LODCommand
+# from scripts.SistrParse import ParseSistrOutput
+# from validation.limitOfDetection.LODExperimentWorkflow import LODCommand
 from cleo import Application
 
-application = Application("stype_cli", "0.1.1")
+application = Application("stype_cli", "0.2.0")
 application.add(RunSistrWorkflow())
 application.add(CleanSistrWorkflow())
 # application.add(LODCommand())
