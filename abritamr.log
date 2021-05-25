@@ -1,0 +1,18 @@
+[INFO:05/25/2021 09:37:15 PM] Checking if file /home/khhor/dev/salmonella_typing_dev/tests/contigs.fa exists
+[INFO:05/25/2021 09:37:15 PM] The input file seems to be in the correct format. Thank you.
+[INFO:05/25/2021 09:37:15 PM] The input file seems to be in the correct format. Thank you.
+[CRITICAL:05/25/2021 09:37:15 PM] Your input file should either be a tab delimited file with two columns or the path to contigs. Please check your input and try again.
+[CRITICAL:05/25/2021 09:37:15 PM] You must supply a sample or sequence id.
+[INFO:05/25/2021 09:37:15 PM] The input file seems to be in the correct format. Thank you.
+[INFO:05/25/2021 09:37:15 PM] Checking if file /home/khhor/dev/salmonella_typing_dev/tests/contigs.fa exists
+[INFO:05/25/2021 09:37:15 PM] /home/khhor/dev/salmonella_typing_dev/tests/contigs.fa is present. salmonella_typing can proceed.
+[CRITICAL:05/25/2021 09:37:15 PM] Your input file should either be a tab delimited file with two columns or the path to contigs. Please check your input and try again.
+[INFO:05/25/2021 09:38:31 PM] Checking if file /home/khhor/dev/salmonella_typing_dev/tests/contigs.fa exists
+[INFO:05/25/2021 09:38:31 PM] The input file seems to be in the correct format. Thank you.
+[INFO:05/25/2021 09:38:32 PM] The input file seems to be in the correct format. Thank you.
+[CRITICAL:05/25/2021 09:38:32 PM] Your input file should either be a tab delimited file with two columns or the path to contigs. Please check your input and try again.
+[CRITICAL:05/25/2021 09:38:32 PM] You must supply a sample or sequence id.
+[INFO:05/25/2021 09:38:32 PM] The input file seems to be in the correct format. Thank you.
+[INFO:05/25/2021 09:38:32 PM] Checking if file /home/khhor/dev/salmonella_typing_dev/tests/contigs.fa exists
+[INFO:05/25/2021 09:38:32 PM] /home/khhor/dev/salmonella_typing_dev/tests/contigs.fa is present. salmonella_typing can proceed.
+[CRITICAL:05/25/2021 09:38:32 PM] Your input file should either be a tab delimited file with two columns or the path to contigs. Please check your input and try again.
