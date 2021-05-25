@@ -156,7 +156,7 @@ class RunTyping:
         """
         generate cmd with parallel
         """
-        cmd = f"parallel -j {self.jobs} --colsep '\\t' 'tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m' :::: {self.input}"
+        cmd = f"parallel -j {self.jobs} --colsep '\\t' 'tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m && rm -r $tmp_dir' :::: {self.input}"
 
         return cmd
     
