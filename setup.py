@@ -36,7 +36,6 @@ setup(
     tests_require=["nose", "pytest"],
     entry_points={
         "console_scripts": [
-            # "mdu-amr-detection=abritamr.abritamr:main",
             "stype=styping.stype:main"
         ]
     },

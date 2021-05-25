@@ -32,12 +32,17 @@ To perform _Salmonella enterica_ serotyping we use the tool `sistr` [[1](#yoshid
 
 ## Running salmonella_serotyping
 
-`salmonella_serotyping` is most commonly run in the context of MDU QC, where isolates that have been identified as Salmonella species by kmer-id are collected and the results of sistr output filtered and saved as csv and a spreadsheet ready for LIMS upload. However, it can also be run outside of MDU QC.
-
-If running outside of MDU QC a comma separated file needs to be supplied with headers ID,ASM. Column 1 is the ID of the sample and will be used throughout the typing and collation, and ASM is the path to an assembly. You may also supply a prefix, which will be used to name output files
-
 ```
-salmonella_typing run --prefix some_name input.csv
+stype run --help
+usage: stype run [-h] [--contigs CONTIGS] [--prefix PREFIX] [--jobs JOBS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --contigs CONTIGS, -c CONTIGS
+                        Tab-delimited file with sample ID as column 1 and path to assemblies as column 2 OR path to a contig file (used if only doing a single sample - should provide value for -pfx). (default: )
+  --prefix PREFIX, -px PREFIX
+                        If running on a single sample, please provide a prefix for output directory (default: abritamr)
+  --jobs JOBS, -j JOBS  Number of AMR finder jobs to run in parallel. (default: 16)
 ```
 
 You can also run `salmonella_typing` outside of an MDU QC run, however, you will need the `distribution_table.txt` and have the assemblies already in the appropriate structure
