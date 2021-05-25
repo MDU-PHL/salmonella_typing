@@ -63,10 +63,8 @@ class SetupAMR(Setup):
         
         self.jobs = args.jobs # number of amrfinderplus to run at a time
         self.contigs = args.contigs
-        self.from_contigs = True if args.contigs != '' else False
         self.prefix = args.prefix
-        # amr
-        self.species = args.species if args.species in self.species_list else ""
+        
 
     def _check_prefix(self):
         """
