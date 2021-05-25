@@ -110,6 +110,50 @@ class SetupTyping(object):
         return input_data
 
 
+class SetupMDU(SetupTyping):
+    """
+    Setup MDUify of abritamr results
+    """
+    def __init__(self, args):
+        
+
+        self.logger =logging.getLogger(__name__) 
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(CustomFormatter())
+        fh = logging.FileHandler('abritamr.log')
+        fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
+        fh.setFormatter(formatter)
+        self.logger.addHandler(ch) 
+        self.logger.addHandler(fh)
+
+        self.runid = args.runid
+        self.input = args.sistr
+        
+
+    def _check_runid(self):
+        if self.runid == '':
+            self.logger.critical(f"Run ID can not be empty, please try again.")
+            raise SystemExit
+        else:
+            return True
+
+    def setup(self):
+        """
+        Check the inputs for MDU - ensure all files are present for collation.
+        """
+        self._check_runid()
+
+        Data = collections.namedtuple('Data', ['input', 'runid'])
+
+        if self.file_present(self.sistr) and self._check_runid():
+            return Data(self.sistr, self.runid)
+        else:
+            self.logger.critical(f"Something has gone wrong with your inputs. Please try again!")
+            raise SystemExit
+
 class RunTyping:
     """
     A base class for setting up abritamr return a valid input object for subsequent steps
@@ -208,48 +252,3 @@ class RunTyping:
 
         return sistr_data
 
-
-# class SetupMDU(Setup):
-#     """
-#     Setup MDUify of abritamr results
-#     """
-#     def __init__(self, args):
-        
-
-#         self.logger =logging.getLogger(__name__) 
-#         self.logger.setLevel(logging.DEBUG)
-#         ch = logging.StreamHandler()
-#         ch.setLevel(logging.DEBUG)
-#         ch.setFormatter(CustomFormatter())
-#         fh = logging.FileHandler('abritamr.log')
-#         fh.setLevel(logging.DEBUG)
-#         formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
-#         fh.setFormatter(formatter)
-#         self.logger.addHandler(ch) 
-#         self.logger.addHandler(fh)
-#         self.db = db
-#         self.qc = args.qc
-#         self.runid = args.runid
-#         self.matches = args.matches
-#         self.partials = args.matches   
-
-#     def _check_runid(self):
-#         if self.runid == '':
-#             self.logger.critical(f"Run ID can not be empty, please try again.")
-#             raise SystemExit
-#         else:
-#             return True
-
-#     def setup(self):
-#         """
-#         Check the inputs for MDU - ensure all files are present for collation.
-#         """
-#         self._check_runid()
-
-#         Data = collections.namedtuple('Data', ['qc', 'matches', 'partials', 'db', 'runid'])
-
-#         if self.file_present(self.qc) and self.file_present(self.matches) and self.file_present(self.partials) and self._check_runid():
-#             return Data(self.qc, self.matches, self.partials, self.db, self.runid)
-#         else:
-#             self.logger.critical(f"Something has gone wrong with your inputs. Please try again!")
-#             raise SystemExit

@@ -157,18 +157,17 @@ class MduifySistr:
         self.runid = args.runid
         self.input = args.input
 
-    # mdu specific functions... sub class?
-    def assign_itemcode(self, mduid):
-        m = MDUIDREG.match(mduid)
-        itemcode = m.group('itemcode') if m.group('itemcode') else ''
-        return itemcode
-
-    def assign_mduid(self,mduid):
-        m = MDUIDREG.match(mduid)
-        mduid = m.group('id')
-        return mduid
-
     def make_spreadsheet(self, tab, prefix):
+        # mdu specific functions... sub class?
+        def assign_itemcode(self, mduid):
+            m = MDUIDREG.match(mduid)
+            itemcode = m.group('itemcode') if m.group('itemcode') else ''
+            return itemcode
+
+        def assign_mduid(self,mduid):
+            m = MDUIDREG.match(mduid)
+            mduid = m.group('id')
+            return mduid
         self.logger.info('Generating spreadsheet')
         tab = tab.rename(columns = {'genome': 'SEQID'})
         tab['ID'] = tab['SEQID'].apply(lambda x:assign_mduid(x))
@@ -187,4 +186,4 @@ class MduifySistr:
     def mduify(self):
         self.logger(f"Opening concatenated file.")
         tab = pandas.read_csv(self.input)
-        self.make_spreadsheet(tab, out_prefix)
+        self.make_spreadsheet(tab, self.runid)

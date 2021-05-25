@@ -1,8 +1,8 @@
 import pathlib, argparse, sys, os, logging
 
-from styping.Typing import SetupTyping, RunTyping
-# from abritamr.RunFinder import RunFinder
-# from abritamr.Collate import Collate, MduCollate
+from styping.Typing import SetupTyping, RunTyping, SetupMDU
+from styping.Parse import ParseSistr, MduifySistr
+
 from styping.version import __version__
 
 """
@@ -13,17 +13,17 @@ abritamr is designed to implement AMRFinder and parse the results compatible for
 def run_pipeline(args):
     P = SetupTyping(args)
     input_data = P.setup()
-    T = RunFinder(input_data)
+    T = RunTyping(input_data)
     sistr_data = T.run()
-    # C = Collate(amr_data)
-    # collated_data = C.run()
+    P = ParseSistr(sistr_data)
+    collated_data = P.parse()
     
 
-# def mdu(args):
-#     M = SetupMDU(args)
-#     input_data = M.setup()
-#     C = MduCollate(input_data)
-#     collated_data = C.run()
+def mdu(args):
+    M = SetupMDU(args)
+    input_data = M.setup()
+    P = MduifySistr(input_data)
+    collated_data = P.run()
 
 
 def set_parsers():
@@ -51,33 +51,21 @@ def set_parsers():
         "--jobs", "-j", default=16, help="Number of AMR finder jobs to run in parallel."
     )
     
-    # parser_mdu = subparsers.add_parser('mdu', help='Finalise abritamr results for MDU service', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_mdu = subparsers.add_parser('mdu', help='Finalise styping results for MDU service', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
-    # parser_mdu.add_argument(
-    #     "--qc",
-    #     "-q",
-    #     default="",
-    #     help="Name of checked MDU QC file."
-    # )
-    # parser_mdu.add_argument(
-    #     "--runid",
-    #     "-r",
-    #     default=f"Run ID",
-    #     help="MDU RunID",
-    # )
-    # parser_mdu.add_argument(
-    #     "--matches",
-    #     "-m",
-    #     default=f"summary_matches.txt",
-    #     help="Path to matches, concatentated output of abritamr",
-    # )
-    # parser_mdu.add_argument(
-    #     "--partials",
-    #     "-p",
-    #     default=f"summary_partials.txt",
-    #     help="Path to partial matches, concatentated output of abritamr",
-    # )
-
+    parser_mdu.add_argument(
+        "--runid",
+        "-r",
+        default=f"Run ID",
+        help="MDU RunID",
+    )
+    parser_mdu.add_argument(
+        "--sistr",
+        "-s",
+        default=f"sistr_concatenated.csv",
+        help="Path to concatentated output of sistr",
+    )
+    
     
     
     parser_sub_run.set_defaults(func=run_pipeline)
