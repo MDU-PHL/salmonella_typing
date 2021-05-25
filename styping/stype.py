@@ -14,7 +14,7 @@ def run_pipeline(args):
     P = SetupTyping(args)
     input_data = P.setup()
     T = RunFinder(input_data)
-    # amr_data = A.run()
+    sistr_data = T.run()
     # C = Collate(amr_data)
     # collated_data = C.run()
     

@@ -1,5 +1,5 @@
 import pathlib, pandas, datetime, subprocess, os, logging,subprocess,collections
-from styping.version import db
+from styping.version import sistr_version
 from styping.CustomLog import CustomFormatter
 
 
@@ -105,7 +105,7 @@ class SetupTyping(object):
         if running_type == 'assembly':
             self._check_prefix()
         Data = collections.namedtuple('Data', ['run_type', 'input', 'prefix', 'jobs'])
-        input_data = Data(running_type, self.contigs, self.prefix, self.jobs, self.species)
+        input_data = Data(running_type, self.contigs, self.prefix, self.jobs)
         
         return input_data
 
@@ -136,10 +136,10 @@ class RunTyping:
         self.jobs = args.jobs
 
     def _batch_cmd(self):
-            """
-            generate cmd with parallel
-            """
-            cmd = f"parallel -j {self.jobs} --colsep '\\t' '$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m' :::: {self.input}"
+        """
+        generate cmd with parallel
+        """
+        cmd = f"parallel -j {self.jobs} --colsep '\\t' '$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m' :::: {self.input}"
 
         return cmd
     
