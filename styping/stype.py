@@ -23,7 +23,7 @@ def mdu(args):
     M = SetupMDU(args)
     input_data = M.setup()
     P = MduifySistr(input_data)
-    collated_data = P.run()
+    collated_data = P.mduify()
 
 
 def set_parsers():

@@ -37,7 +37,7 @@ setup(
     entry_points={
         "console_scripts": [
             # "mdu-amr-detection=abritamr.abritamr:main",
-            "stype=salmonellatyping.stype:main"
+            "stype=styping.stype:main"
         ]
     },
     classifiers=[

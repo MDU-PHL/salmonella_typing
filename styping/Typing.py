@@ -3,24 +3,24 @@ from styping.version import sistr_version
 from styping.CustomLog import CustomFormatter
 
 
+LOGGER =logging.getLogger(__name__) 
+LOGGER.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(CustomFormatter())
+fh = logging.FileHandler('abritamr.log')
+fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
+fh.setFormatter(formatter)
+LOGGER.addHandler(ch) 
+LOGGER.addHandler(fh)
+
+
 class SetupTyping(object):
     """
     A class for setting up salmonella typing
     """
     def __init__(self, args):
-        
-
-        self.logger =logging.getLogger(__name__) 
-        self.logger.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(CustomFormatter())
-        fh = logging.FileHandler('styping.log')
-        fh.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
-        fh.setFormatter(formatter)
-        self.logger.addHandler(ch) 
-        self.logger.addHandler(fh)
 
         self.jobs = args.jobs 
         self.contigs = args.contigs
@@ -36,7 +36,7 @@ class SetupTyping(object):
         if name == "":
             return False
         elif pathlib.Path(name).exists():
-            self.logger.info(f"Checking if file {name} exists")
+            LOGGER.info(f"Checking if file {name} exists")
             return True
         else:
             return False
@@ -49,7 +49,7 @@ class SetupTyping(object):
         """
 
         if self.prefix == '':
-            self.logger.critical(f"You must supply a sample or sequence id.")
+            LOGGER.critical(f"You must supply a sample or sequence id.")
             raise SystemExit
         else:
             return True
@@ -67,10 +67,10 @@ class SetupTyping(object):
             if not firstline.startswith('>'):
                 for line in data:
                     if len(line.split('\t')) != 2:
-                        self.logger.critical("Your input file should either be a tab delimited file with two columns or the path to contigs. Please check your input and try again.")
+                        LOGGER.critical("Your input file should either be a tab delimited file with two columns or the path to contigs. Please check your input and try again.")
                         raise SystemExit
                 run_type = 'batch'
-        self.logger.info(f"The input file seems to be in the correct format. Thank you.")
+        LOGGER.info(f"The input file seems to be in the correct format. Thank you.")
         return run_type
     
 
@@ -81,18 +81,18 @@ class SetupTyping(object):
         
         running_type = self._get_input_shape()
         if running_type == 'batch':
-            self.logger.info(f"Checking that the input data is present.")
+            LOGGER.info(f"Checking that the input data is present.")
             with open(self.contigs, 'r') as c:
                 data = c.read().strip().split('\n')
                 for line in data:
                     row = line.split('\t')
                     if not self.file_present(row[1]):
-                        self.logger.critical(f"{row[1]} is not a valid file path. Please check your input and try again.")
+                        LOGGER.critical(f"{row[1]} is not a valid file path. Please check your input and try again.")
                         raise SystemExit
         elif running_type == 'assembly' and self.file_present(self.contigs):
-            self.logger.info(f"{self.contigs} is present. abritamr can proceed.")
+            LOGGER.info(f"{self.contigs} is present. salmonella_typing can proceed.")
         else:
-            self.logger.critical(f"Something has gone wrong with your inputs. Please try again.")
+            LOGGER.critical(f"Something has gone wrong with your inputs. Please try again.")
             raise SystemExit
         
         return running_type
@@ -115,27 +115,14 @@ class SetupMDU(SetupTyping):
     Setup MDUify of abritamr results
     """
     def __init__(self, args):
-        
-
-        self.logger =logging.getLogger(__name__) 
-        self.logger.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(CustomFormatter())
-        fh = logging.FileHandler('abritamr.log')
-        fh.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
-        fh.setFormatter(formatter)
-        self.logger.addHandler(ch) 
-        self.logger.addHandler(fh)
-
+    
         self.runid = args.runid
         self.input = args.sistr
         
 
     def _check_runid(self):
         if self.runid == '':
-            self.logger.critical(f"Run ID can not be empty, please try again.")
+            LOGGER.critical(f"Run ID can not be empty, please try again.")
             raise SystemExit
         else:
             return True
@@ -148,10 +135,10 @@ class SetupMDU(SetupTyping):
 
         Data = collections.namedtuple('Data', ['input', 'runid'])
 
-        if self.file_present(self.sistr) and self._check_runid():
-            return Data(self.sistr, self.runid)
+        if self.file_present(self.input) and self._check_runid():
+            return Data(self.input, self.runid)
         else:
-            self.logger.critical(f"Something has gone wrong with your inputs. Please try again!")
+            LOGGER.critical(f"Something has gone wrong with your inputs. Please try again!")
             raise SystemExit
 
 class RunTyping:
@@ -159,20 +146,6 @@ class RunTyping:
     A base class for setting up abritamr return a valid input object for subsequent steps
     """
     def __init__(self, args):
-        # tmp_dir=\$(mktemp -d -t sistr-XXXXXXXXXX)
-    # sistr -i contigs.fa ${prefix} -f csv -o sistr.csv --tmp-dir \$tmp_dir -m 
-
-        self.logger =logging.getLogger(__name__) 
-        self.logger.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(CustomFormatter())
-        fh = logging.FileHandler('styping.log')
-        fh.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
-        fh.setFormatter(formatter)
-        self.logger.addHandler(ch) 
-        self.logger.addHandler(fh)
 
         self.run_type = args.run_type
         self.input = args.input
@@ -183,7 +156,7 @@ class RunTyping:
         """
         generate cmd with parallel
         """
-        cmd = f"parallel -j {self.jobs} --colsep '\\t' '$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m' :::: {self.input}"
+        cmd = f"parallel -j {self.jobs} --colsep '\\t' 'tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m' :::: {self.input}"
 
         return cmd
     
@@ -191,7 +164,7 @@ class RunTyping:
         """
         generate a single amrfinder command
         """
-        cmd = f"$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {self.prefix} && sistr -i {self.input} {self.prefix} -f csv -o {self.prefix}/sistr.csv --tmp-dir $tmp_dir -m"
+        cmd = f"tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {self.prefix} && sistr -i {self.input} {self.prefix} -f csv -o {self.prefix}/sistr.csv --tmp-dir $tmp_dir -m && rm -r $tmp_dir"
         
         return cmd
     
@@ -199,6 +172,7 @@ class RunTyping:
         """
         Generate a command to run sistr
         """
+        LOGGER.info(f"Determining command to run salmonella_typing in {self.run_type} mode.")
         cmd = self._batch_cmd() if self.run_type == 'batch' else self._single_cmd()
         return cmd
         
@@ -209,17 +183,17 @@ class RunTyping:
 
         p = subprocess.run(cmd, shell = True, capture_output = True, encoding = "utf-8")
         if p.returncode == 0:
-            self.logger.info(f"sistr completed successfully. Will now move on to collation.")
+            LOGGER.info(f"sistr completed successfully. Will now move on to collation.")
             return True
         else:
-            self.logger.critical(f"There appears to have been a problem with running sistr. The following error has been reported : \n {p.stderr}")
+            LOGGER.critical(f"There appears to have been a problem with running sistr. The following error has been reported : \n {p.stderr}")
 
     def _check_output_file(self, path):
         """
         check that sistr outputs are present
         """
         if not pathlib.Path(path).exists():
-            self.logger.critical(f"The sistr output : {path} is missing. Something has gone wrong with sistr. Please check all inputs and try again.")
+            LOGGER.critical(f"The sistr output : {path} is missing. Something has gone wrong with sistr. Please check all inputs and try again.")
             raise SystemExit
         else:
             return True
@@ -240,10 +214,8 @@ class RunTyping:
         """
         run sistr
         """
-    
-        self.logger.info(f"All check complete now running sistr")
         cmd = self._generate_cmd()
-        self.logger.info(f"You are running sistr in {self.run_type} mode. Now executing : {cmd}")
+        LOGGER.info(f"You are running sistr in {self.run_type} mode. Now executing : {cmd}")
         self._run_cmd(cmd)
         self._check_outputs()
 

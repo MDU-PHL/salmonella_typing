@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
-import inspect, pathlib, pandas, re, logging
+import inspect, pathlib, pandas, re, logging, subprocess
 import numpy as np
 from styping.CustomLog import CustomFormatter
-import styping.utils.rules
-import styping.utils.filters
+import styping.utils.rules as rules
+import styping.utils.filters as filters
+
+
+LOGGER =logging.getLogger(__name__) 
+LOGGER.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(CustomFormatter())
+fh = logging.FileHandler('styper.log')
+fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
+fh.setFormatter(formatter)
+LOGGER.addHandler(ch) 
+LOGGER.addHandler(fh)
+
 
 class ParseSistr:
     """
@@ -11,17 +25,6 @@ class ParseSistr:
     """
     # sistr_data = Data(self.run_type, self.input, self.prefix)
     def __init__(self, args):
-        self.logger =logging.getLogger(__name__) 
-        self.logger.setLevel(logging.INFO)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(CustomFormatter())
-        fh = logging.FileHandler('abritamr.log')
-        fh.setLevel(logging.INFO)
-        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
-        fh.setFormatter(formatter)
-        self.logger.addHandler(ch) 
-        self.logger.addHandler(fh)
 
         self.prefix = args.prefix
         self.run_type = args.run_type
@@ -40,10 +43,6 @@ class ParseSistr:
             for name, function in inspect.getmembers(filters, inspect.isfunction)
             if name.startswith("filter_")
         ]
-
-
-# for MDU parse
-# MDUIDREG = re.compile(r'(?P<id>[0-9]{4}-[0-9]{5,6})-?(?P<itemcode>.{1,2})?')
 
     def apply_rules(self, tab):
         
@@ -90,7 +89,8 @@ class ParseSistr:
     def _run_concat(self, sistrs):
 
         cmd = f"csvtk concat {' '.join(sistrs)} > sistr_concatenated.csv"
-        p = subprocess.run(cmd, shell = True, capture_output = True , encoding = :"utf-8")
+        LOGGER.info(f"Concatenating results : {cmd}")
+        p = subprocess.run(cmd, shell = True, capture_output = True , encoding = "utf-8")
         if p.returncode == 0:
             return True
         else:
@@ -99,15 +99,17 @@ class ParseSistr:
     def _concat_sistr(self):
 
         sistrs = []
+        LOGGER.info(f"Opening {self.input} to concatenate results")
         with open(self.input , 'r') as f:
             data = f.read().strip().split('\n')
             for d in data:
-                sistrs.append(f"{d.split('\t')[0]}")
+                cmd = d.split('\t')[0]
+                sistrs.append(f"{cmd}/sistr.csv")
         if self._run_concat(sistrs):
-            self.logger.info(f"Concatenating sistr output to a single file.")
+            LOGGER.info(f"Concatenating sistr output to a single file.")
             return "sistr_concatenated.csv"
         else:
-            self.logger.critical(f"There seems that something has gone wrong with concatenating your sistr outputs. Please try again.")
+            LOGGER.critical(f"There seems that something has gone wrong with concatenating your sistr outputs. Please try again.")
             raise SystemExit
 
     def _get_input_file(self):
@@ -118,64 +120,54 @@ class ParseSistr:
 
     def _filter_sistr(self, input_file):
         # get tab
-        self.logger.info(f"Opening {input_file}")
+        LOGGER.info(f"Opening {input_file}")
         tab = pandas.read_csv(input_file)
-        self.logger.info(f"Applying rules")
+        LOGGER.info(f"Applying rules")
         # apply rules
-        tab = apply_rules(tab = tab)
+        tab = self.apply_rules(tab = tab)
         # apply filters
-        self.logger.info(f"Applying filters")
-        tab = filter_rules(tab = tab)
+        LOGGER.info(f"Applying filters")
+        tab = self.filter_rules(tab = tab)
         # call status
-        self.logger.info(f"Calling status of each sample.")
-        tab = call_status(tab)
+        LOGGER.info(f"Calling status of each sample.")
+        tab = self.call_status(tab)
         return tab
 
 
     def parse(self):
         input_file = self._get_input_file()
         tab = self._filter_sistr(input_file = input_file)
-        
+        outfile = 'sistr_filtered.csv' if self.run_type == 'batch' else f"{self.prefix}/sistr_filtered.csv"
         # save table to output
-        tab.to_csv(f'{self.prefix}_filtered.csv', index = False)
+        LOGGER.info(f"Saving filtered results as {outfile}")
+        tab.to_csv(f'{outfile}', index = False)
 
 class MduifySistr:
 
     def __init__(self, args):
-        self.logger =logging.getLogger(__name__) 
-        self.logger.setLevel(logging.INFO)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(CustomFormatter())
-        fh = logging.FileHandler('stype.log')
-        fh.setLevel(logging.INFO)
-        formatter = logging.Formatter('[%(levelname)s:%(asctime)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p') 
-        fh.setFormatter(formatter)
-        self.logger.addHandler(ch) 
-        self.logger.addHandler(fh)
-
         self.runid = args.runid
         self.input = args.input
+        self.MDUIDREG = re.compile(r'(?P<id>[0-9]{4}-[0-9]{5,6})-?(?P<itemcode>.{1,2})?')
 
     def make_spreadsheet(self, tab, prefix):
         # mdu specific functions... sub class?
-        def assign_itemcode(self, mduid):
-            m = MDUIDREG.match(mduid)
+        def assign_itemcode(mduid):
+            m = self.MDUIDREG.match(mduid)
             itemcode = m.group('itemcode') if m.group('itemcode') else ''
             return itemcode
 
-        def assign_mduid(self,mduid):
-            m = MDUIDREG.match(mduid)
+        def assign_mduid(mduid):
+            m = self.MDUIDREG.match(mduid)
             mduid = m.group('id')
             return mduid
-        self.logger.info('Generating spreadsheet')
+        LOGGER.info('Generating spreadsheet')
         tab = tab.rename(columns = {'genome': 'SEQID'})
         tab['ID'] = tab['SEQID'].apply(lambda x:assign_mduid(x))
         tab['ITEMCODE'] = tab['SEQID'].apply(lambda x:assign_itemcode(x))
         cols = ["ID","ITEMCODE","SEQID","cgmlst_subspecies","cgmlst_matching_alleles","serovar_cgmlst","o_antigen","h1","h2","serogroup","serovar_antigen","serovar-original","serovar","STATUS"]
         mms136 = tab[tab['STATUS'] == 'PASS'][cols]
         review = tab[~tab['STATUS'].isin(['PASS', 'FAIL'])][cols]
-        self.logger.info(f"Saving spreadsheet")
+        LOGGER.info(f"Saving spreadsheet")
         writer = pandas.ExcelWriter(f'{prefix}_sistr.xlsx')
         mms136.to_excel(writer, sheet_name = "MMS136", index = False)
         review.to_excel(writer, sheet_name = "REVIEW", index = False)
@@ -184,6 +176,6 @@ class MduifySistr:
 
     # function to run
     def mduify(self):
-        self.logger(f"Opening concatenated file.")
+        LOGGER.info(f"Opening concatenated file.")
         tab = pandas.read_csv(self.input)
         self.make_spreadsheet(tab, self.runid)
