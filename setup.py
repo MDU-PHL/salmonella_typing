@@ -5,7 +5,7 @@ from sys import exit, version_info
 from setuptools import setup, find_packages
 from os import environ
 import logging
-import abritamr
+import styping
 
 # logging.basicConfig(level=environ.get("LOGLEVEL", "INFO"))
 
@@ -31,13 +31,13 @@ setup(
     python_requires=">=3.7, <4",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     zip_safe=False,
-    install_requires=["pandas","toml", "xlsxwriter"],
+    install_requires=["pandas", "xlsxwriter"],
     test_suite="nose.collector",
     tests_require=["nose", "pytest"],
     entry_points={
         "console_scripts": [
             # "mdu-amr-detection=abritamr.abritamr:main",
-            "stype=salmonella_typing.stype_cli:main"
+            "stype=salmonellatyping.stype:main"
         ]
     },
     classifiers=[
@@ -51,5 +51,5 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
-    package_data={"abritamr": ["templates/*", "db/*", "utils/*", "test/*"]}
+    # package_data={"abritamr": ["templates/*", "db/*", "utils/*", "test/*"]}
 )
