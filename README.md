@@ -30,6 +30,18 @@ To perform _Salmonella enterica_ serotyping we use the tool `sistr` [[1](#yoshid
 1. It uses _BLAST_ to identify the presence of annotated O- and H- antigen sequences. As such, it comes with curated multiFASTA files for the _fliC_, _fliB_, and _wzx_ and _wzy_ genes.
 2. It has a cgMLST scheme with 330 loci, and a database of 52 790 genomes (mostly comprising subspecies I) that have been typed at these loci and annotated with a serotype. It uses _BLAST_ to genotype the input assembly across as many of the 330 loci, and then calculates the pairwise distance of the input isolate to the database of curated genomes.
 
+## Install
+
+At the moment salmonella_typing installation is limited to installation from this repository
+
+```
+pip3 install git+https://github.com/MDU-PHL/salmonella_typing
+```
+*Dependencies*
+
+* You will also need to ensure that `sistr v1.1.1` is installed, instructions for this can be found [here](https://github.com/phac-nml/sistr_cmd) 
+* `csvtk` installation instructions can be found [here](https://github.com/shenwei356/csvtk) 
+
 ## Running salmonella_serotyping
 
 ```
