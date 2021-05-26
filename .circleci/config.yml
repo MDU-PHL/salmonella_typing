@@ -31,4 +31,3 @@ jobs: # A basic unit of work in a run
       - run:
           command: |
             pipenv run pytest
-            stype run -c ~/repo/styping/data/SentericaLT2.fasta -px LT2
