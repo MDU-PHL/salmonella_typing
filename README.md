@@ -45,30 +45,53 @@ optional arguments:
   --jobs JOBS, -j JOBS  Number of AMR finder jobs to run in parallel. (default: 16)
 ```
 
-You can also run `salmonella_typing` outside of an MDU QC run, however, you will need the `distribution_table.txt` and have the assemblies already in the appropriate structure
-
-```working_dir
-        |_____
-                QC
-                 |_____
-                        Isolate_name
-                            |___________contigs.fa
-```
-You can then run (in the working_dir)
+Salmonella_typing can be on a single sample run by
 
 ```
-salmonella_typing run -m -p <RUNID> distribute_table.txt
+stype -c <path_to_contigs> -px <name_of_sample>
+```
+
+Or in batch mode
+
+```
+stype -c input.tab -j 16
+```
+
+Where `input.tab` is a tab-delimited file with column 1 being sample ID and column 2 is path to the assemblies.
+
+### MDU Service
+
+```
+usage: stype mdu [-h] [--runid RUNID] [--sistr SISTR]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --runid RUNID, -r RUNID
+                        MDU RunID (default: Run ID)
+  --sistr SISTR, -s SISTR
+                        Path to concatentated output of sistr (default: sistr_concatenated.csv)
+```
+
+In order to generate a LIMS friendly spreadsheet, collate all `stype` results
+
+```
+csvtk concat sample_1/sistr_filtered.csv sample_2/sistr_filtered.csv ... > sistr_concatenated.csv
+```
+
+Then run `stype` in `mdu` mode
+
+```
+stype mdu -r RUNID -s sistr_concatenated.csv
 ```
 
 ## Output 
 
 | File | Contents |
 | :---: |:---:|
-| `sample_directory/contigs.fa` | Assembly file used as input to salmonella_typing |
 | `sample_directory/sistr.csv` | raw output of `sistr` |
-| `sistr.csv` | contains the raw output of each sample collated together |
-| `sistr_filtered.csv` | `sistr` output that has been collated and filtered based on MDU business logic |
-| `sistr.xlsx` | a spreadsheet ready for upload into MDU LIMS (only output if the `-m` flag is used |
+| `sample_directory/sistr_filtered.csv` | `sistr` output that has been filtered based on MDU business logic per sample |
+| `sistr_filtered.csv` | `sistr` output that has been collated and filtered based on MDU business logic for batch |
+| `<RUNID>_sistr.xlsx` | a spreadsheet ready for upload into MDU LIMS only output if `mdu` used |
 
 ## References
 
