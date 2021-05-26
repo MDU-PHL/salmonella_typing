@@ -1,5 +1,8 @@
 # _In silico_ _Salmonella enterica_ Serotyping
 
+[![CircleCI](https://circleci.com/gh/MDU-PHL/salmonella_typing.svg?style=svg&circle-token=509a58b6160fa4f9b7ea80a2f5f767545e0632ba)](https://circleci.com/gh/MDU-PHL/salmonella_typing)
+
+
 ## Scope
 
 The scripts presented in this repository are to be used to perform _in silico_ serotyping of _Salmonella enterica_ in accordance with MMS136. It takes as input a draft assembly and outputs a serotype inference. The draft assembly is obtained by performing a _de novo_ assembly on FASTQ data found to have passed MMS103 and to be identified as _Salmonella enterica_ by _kmer ID_ and by a wet laboratory method.
