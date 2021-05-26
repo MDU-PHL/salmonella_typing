@@ -54,7 +54,41 @@ class SetupTyping(object):
         else:
             return True
 
-            
+    def _check_csvtk(self):
+        """
+        return true if csvtk is installed
+        """
+        p = subprocess.run('csvtk -h', shell = True, capture_output = True, encoding = 'utf-8')
+        if p.returncode == 0:
+            LOGGER.info(f"csvtk is installed.")
+            return True
+        else:
+            LOGGER.critical(f"Please install csvtk. Instructions can be found here : https://github.com/shenwei356/csvtk")
+            raise SystemExit
+
+    def _check_sistr(self):
+        """
+        Check that sistr is installed and the correct version is being used.
+        """
+        p = subprocess.run('sistr --version', shell = True, capture_output = True, encoding = "utf-8")
+        if sistr_version in p.stdout or sistr_version in p.stderr:
+            LOGGER.info(f"sistr v {sistr_version} is installed.")
+            return True
+        else:
+            LOGGER.critical(f"Please install sistr v {sistr_version}. Instructions can be found here : https://github.com/phac-nml/sistr_cmd")
+            raise SystemExit
+
+
+    def _check_deps(self):
+        """
+        check that sistr and csvtk are both installed
+        """        
+        if self._check_sistr() and self._check_csvtk():
+            LOGGER.info(f"Dependencies are installed. salmonella_typing can proceed")
+            return True
+        else:
+            LOGGER.critical(f"It seems that your dependencies are not installed correctly. Please check installation instructions and try again.")
+            raise SystemExit
     
     def _get_input_shape(self):
         """
@@ -99,6 +133,8 @@ class SetupTyping(object):
    
 
     def setup(self):
+        LOGGER.info("Checking dependencies.")
+        self._check_deps()
         # check that inputs are correct and files are present
         running_type = self._input_files()
         # check that prefix is present (if needed)
