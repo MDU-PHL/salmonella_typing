@@ -163,7 +163,7 @@ def test_batch_cmd():
         stype_obj.prefix = args.prefix
         stype_obj.jobs = args.jobs
         stype_obj.input = args.input
-        cmd = f"parallel -j {args.jobs} --colsep '\\t' 'tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --threads 1 --tmp-dir $tmp_dir -m && rm -r $tmp_dir' :::: {args.input}"
+        cmd = f"parallel -j {args.jobs} --colsep '\\t' 'tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir --threads 1 -m && rm -r $tmp_dir' :::: {args.input}"
         stype_obj.logger = logging.getLogger(__name__)
         assert stype_obj._batch_cmd() == cmd
 
@@ -178,7 +178,7 @@ def test_single_cmd():
         stype_obj.prefix = args.prefix
         stype_obj.jobs = args.jobs
         stype_obj.input = args.input
-        cmd = f"tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {args.prefix} && sistr -i {args.input} {args.prefix} -f csv -o {args.prefix}/sistr.csv --threads {self.jobs} --tmp-dir $tmp_dir -m && rm -r $tmp_dir"
+        cmd = f"tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {args.prefix} && sistr -i {args.input} {args.prefix} -f csv -o {args.prefix}/sistr.csv --threads {args.jobs} --tmp-dir $tmp_dir -m && rm -r $tmp_dir"
         stype_obj.logger = logging.getLogger()
         assert stype_obj._single_cmd() == cmd
 
