@@ -192,7 +192,7 @@ class RunTyping:
         """
         generate cmd with parallel
         """
-        cmd = f"parallel -j {self.jobs} --colsep '\\t' 'tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir -m && rm -r $tmp_dir' :::: {self.input}"
+        cmd = f"parallel -j {self.jobs} --colsep '\\t' 'tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {{1}} && sistr -i {{2}} {{1}} -f csv -o {{1}}/sistr.csv --tmp-dir $tmp_dir --threads 1 -m && rm -r $tmp_dir' :::: {self.input}"
 
         return cmd
     
@@ -200,7 +200,7 @@ class RunTyping:
         """
         generate a single amrfinder command
         """
-        cmd = f"tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {self.prefix} && sistr -i {self.input} {self.prefix} -f csv -o {self.prefix}/sistr.csv --tmp-dir $tmp_dir -m && rm -r $tmp_dir"
+        cmd = f"tmp_dir=$(mktemp -d -t sistr-XXXXXXXXXX) && mkdir -p {self.prefix} && sistr -i {self.input} {self.prefix} -f csv -o {self.prefix}/sistr.csv --threads {self.jobs} --tmp-dir $tmp_dir -m && rm -r $tmp_dir"
         
         return cmd
     
